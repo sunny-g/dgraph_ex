@@ -8,7 +8,7 @@ https://github.com/elbow-jason/dgraph_ex/issues/45
 
 Right now only the **function syntax** is working.
 
-If you have a (dgraph server running)[https://docs.dgraph.io/get-started/#from-installed-binary] you can execute a quick test demonstrating persistance.
+If you have a [dgraph server running](https://docs.dgraph.io/get-started/#from-installed-binary) you can execute a quick test demonstrating persistance.
 
 ```
 mix test examples/persistance_demo.exs
