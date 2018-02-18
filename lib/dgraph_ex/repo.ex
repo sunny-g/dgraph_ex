@@ -3,6 +3,11 @@ defmodule DgraphEx.Repo do
   def alter([%DgraphEx.Field{} | _] = fields) do
     DgraphEx.Client.send(data: DgraphEx.Alter.new(fields))
   end
+
+  def alter(%DgraphEx.Alter{} = alter) do
+    DgraphEx.Client.send(data: alter, path: "/alter")
+  end
+
   def alter(module) when is_atom(module) do
     if !DgraphEx.Vertex.is_model?(module) do
       raise %ArgumentError{
@@ -15,8 +20,26 @@ defmodule DgraphEx.Repo do
     DgraphEx.Client.send(data: data)
   end
 
-  def mutate(%DgraphEx.Set{} = set) do
-    DgraphEx.Client.send(data: set)
+  def mutate(_, commit_now \\ false) # function head
+
+  def mutate(%DgraphEx.Set{} = set, commit_now) do
+    do_mutate(set, commit_now)
+  end
+
+  def mutate(%DgraphEx.Delete{} = delete, commit_now) do
+    do_mutate(delete, commit_now)
+  end
+
+  defp do_mutate(data, false) do
+    DgraphEx.Client.send(data: data, path: "/mutate")
+  end
+
+  defp do_mutate(data, true) do
+    DgraphEx.Client.send(data: data, path: "/mutate", headers: [{"X-Dgraph-CommitNow", true}])
+  end
+
+  def query(%DgraphEx.Query{} = query) do
+    DgraphEx.Client.send(data: query, path: "/query")
   end
 
   def query(kwargs) when is_list(kwargs) do
