@@ -48,14 +48,15 @@ defmodule DgraphEx.Response do
   end
 
   def new(status, json, %Request{} = request) when is_map(json) do
-    IO.inspect(json, label: :response_json)
+    # IO.inspect(json, label: :response_json)
     %Response{
       status:       status,
       json:         json,
       code:         get_json(json, "code"),
       message:      get_json(json, "message"),
       uids:         get_json(json, "uids"),
-      data:         json |> Map.get("data") |> Map.drop(["code", "message", "uids"]),
+      # data:         json |> Map.get("data") |> Map.drop(["code", "message", "uids"]),
+      data:         json |> Map.get("data", []),
       extensions:   Map.get(json, "extensions", %{}),
       errors:       json |> Map.get("errors", []) |> Enum.map(&DgraphEx.Error.new/1),
       request:      request,
