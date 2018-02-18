@@ -6,9 +6,6 @@ defmodule PersistanceDemo do
 
   @commit_now true
 
-  # import DgraphEx.Field
-  # alias DgraphEx.Alter
-
   def new_resource() do
 
     result = set()
