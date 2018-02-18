@@ -102,7 +102,7 @@ defmodule PersistanceDemo do
 
   def delete_all([]), do: nil
 
-  test "set new resource" do
+  test "quick test to demonstrate persistance with set, alter, query, delete" do
 
     {:ok, %{uids: %{"resource" => resource_id}}} = new_resource()
 
