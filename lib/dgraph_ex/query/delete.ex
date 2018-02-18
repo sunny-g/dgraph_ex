@@ -20,6 +20,9 @@ defmodule DgraphEx.Delete do
       def delete(block) do
         Delete.delete(block)
       end
+      def delete() do
+        %Delete{}
+      end
     end
   end
   def delete(%Field{} = field) do
