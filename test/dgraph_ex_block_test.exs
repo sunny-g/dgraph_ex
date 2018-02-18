@@ -48,7 +48,7 @@ defmodule DgraphEx.BlockTest do
         Taraji_films_by_genre_count(func: uid(G), orderdesc: val(G)) {
           genres: genre(orderdesc: val(C)) {
             genre_name: name@en
-          } 
+          }
           film_name: name@en
         }
       }
@@ -97,7 +97,7 @@ defmodule DgraphEx.BlockTest do
         }
       }
     """)
-    
+
   end
 
   test "empty block" do
@@ -143,7 +143,7 @@ defmodule DgraphEx.BlockTest do
         age: years
         favorite_color: fav_color
       }
-    """) 
+    """)
   end
 
   test "block with expressions as keywords works" do
@@ -196,6 +196,5 @@ defmodule DgraphEx.BlockTest do
       }
     """)
   end
-
 
 end
