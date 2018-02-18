@@ -15,6 +15,20 @@ defmodule DgraphEx.Alter do
     "/alter"
   end
 
+  defmacro __using__(_) do
+    quote do
+
+      def alter() do
+        %Alter{}
+      end
+
+    end
+  end
+
+  def put_field(%Alter{fields: prev_fields} = alter, %Field{} = field) do
+    %{ alter | fields: [ field | prev_fields ]}
+  end
+
   @doc """
   Returns a DgraphEx.Alter struct with the given fields. default [].
 
