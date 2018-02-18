@@ -43,9 +43,10 @@ defmodule DgraphEx.Field do
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.{Query, Field, Set}
+      alias DgraphEx.{Query, Field, Set, Alter}
+
       def field(%Set{} = m, subject, predicate, object, type) do
-        new_field = 
+        new_field =
           Field.new(predicate, type)
           |> Field.put_subject(subject)
           |> Field.put_object(object)
@@ -54,8 +55,19 @@ defmodule DgraphEx.Field do
         # %{ m | fields: [ first | rest ]}
       end
 
+      def field(%Alter{} = m, predicate, type, options) do
+
+        # new_field =
+        #   Field.new(predicate, type)
+        #   |> Field.put_subject(subject)
+        #   |> Field.put_object(object)
+        # # first = %{ first | fields: [ new_field | first.fields ] }
+        Alter.put_field(m, field(predicate, type, options))
+        # %{ m | fields: [ first | rest ]}
+      end
+
       def field(%Query{} = q, subject, predicate, object, type) do
-        new_field = 
+        new_field =
           Field.new(predicate, type)
           |> Field.put_subject(subject)
           |> Field.put_object(object)
@@ -198,7 +210,7 @@ defmodule DgraphEx.Field do
   end
   defp render_setter(f) do
     [
-      render_setter_subject(f), 
+      render_setter_subject(f),
       render_setter_predicate(f),
       render_setter_object(f),
       render_facets(f),
@@ -271,7 +283,7 @@ defmodule DgraphEx.Field do
   end
   def as_setter_template(%Field{object: object} = f) when not is_nil(object) do
     [
-      "_:#{f.subject}", 
+      "_:#{f.subject}",
       "<#{f.predicate}>",
       f.label,
       render_facets(f),
@@ -410,7 +422,7 @@ defmodule DgraphEx.Field do
     case facets do
       nil ->
         ""
-      %{} -> 
+      %{} ->
         facet_string =
           facets
           |> Enum.map(fn {k, v} -> "#{k}=#{stringify(v)}" end)
