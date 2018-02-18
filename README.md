@@ -1,4 +1,15 @@
-# DgraphEx 
+
+# branch 'support-dgraph-v1'
+
+This fork is a work in progress to quickly add support for Dgraph v1.x
+
+Please check this issue on the original repo.
+https://github.com/elbow-jason/dgraph_ex/issues/45
+
+
+---
+
+# DgraphEx
 [![Build Status](https://travis-ci.org/elbow-jason/dgraph_ex.svg?branch=master)](https://travis-ci.org/elbow-jason/dgraph_ex) [![Hex Version][hex-img]][hex] [![License][license-img]][license]
 
 [hex-img]: https://img.shields.io/hexpm/v/dgraph_ex.svg
@@ -12,7 +23,7 @@ Works with dgraph v0.8.1 (most current release as of 16 AUG 2017)
 
 [Docs](https://hexdocs.pm/dgraph_ex)
 
-##### Installation: 
+##### Installation:
 
 ```elixir
 def deps do
@@ -21,7 +32,7 @@ end
 ```
 
 
-## Usage 
+## Usage
 
 #### define a model
 
@@ -93,7 +104,7 @@ We apply the `changeset` function to ensure data consistency:
 
 ```elixir
 {:ok, person} =
-  %Person{} 
+  %Person{}
   |> Person.changeset(%{name: "jason", address: "221B Baker St. London, England 55555"})
 ```
 
@@ -139,7 +150,7 @@ person = Repo.update(person)
 ```elixir
 Repo.get(Company, "0x11c")
 ```
-returns `nil` or a populated `%Company{}` 
+returns `nil` or a populated `%Company{}`
 
 
 #### find anything
