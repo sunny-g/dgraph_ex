@@ -87,7 +87,8 @@ defmodule PersistanceDemo do
 
   def delete_resource(id) do
 
-    result = delete(field(uid(id), "*", "*"))
+    result = delete()
+    |> field(uid(id), "*", "*")
 
     render(result) |> IO.puts
 
