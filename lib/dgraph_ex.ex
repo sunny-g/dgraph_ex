@@ -14,7 +14,7 @@ defmodule DgraphEx do
   # use Mutation
   use DgraphEx.Set
   use DgraphEx.Delete
-  # use DgraphEx.Alter
+  use DgraphEx.Alter
 
   use Query
   use Query.Var
