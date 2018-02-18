@@ -29,7 +29,7 @@ defmodule DgraphEx.Query do
       end
 
       def query(kwargs) when is_list(kwargs) do
-        Kwargs.query(kwargs)
+        Kwargs.parse(kwargs)
       end
 
       def render(x) do

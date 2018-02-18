@@ -3,13 +3,14 @@ defmodule DgraphEx.KwargsTest do
   doctest DgraphEx.Kwargs
 
   import DgraphEx
+  import DgraphEx.Kwargs
   import TestHelpers
 
   alias DgraphEx.ModelPerson, as: Person
-  
-  test "a query call returns a query" do
-    assert query([]) == %DgraphEx.Query{}
-  end
+
+  # test "a query call returns a query" do
+  #   assert query([]) == %DgraphEx.Query{}
+  # end
 
   test "a simple get func select query renders correctly" do
     assert clean_format("""
@@ -20,7 +21,7 @@ defmodule DgraphEx.KwargsTest do
           height
         }
       }
-    """) == render query([
+    """) == render parse([
          get: :person,
         func: eq(:name, "Jason"),
       select: { :name, :age, :height }
@@ -36,7 +37,7 @@ defmodule DgraphEx.KwargsTest do
           height
         }
       }
-    """) == render query([
+    """) == render parse([
           as: :person,
         func: eq(:name, "Jason"),
       select: { :name, :age, :height }
@@ -45,14 +46,14 @@ defmodule DgraphEx.KwargsTest do
 
   test ":filter works" do
     assert clean_format("""
-      { 
+      {
         person(func: eq(name, \"Jason\")) @filter(lt(age, 15)) {
           name
           age
           height
         }
       }
-    """) == render query([
+    """) == render parse([
          get: :person,
         func: eq(:name, "Jason"),
       filter: lt(:age, 15),
@@ -69,7 +70,7 @@ defmodule DgraphEx.KwargsTest do
           height
         }
       }
-    """) == render query([ 
+    """) == render parse([
               get: :person,
              func: eq(:name, "Jason"),
         normalize: true,
@@ -92,7 +93,7 @@ defmodule DgraphEx.KwargsTest do
           height
         }
       }
-    """) == query([
+    """) == parse([
               get: :person,
              func: eq(:name, "Jason"),
        directives: [:cascade, :ignorereflex],
@@ -113,7 +114,7 @@ defmodule DgraphEx.KwargsTest do
           age
         }
       }
-    """) == render query([
+    """) == render parse([
       groupby: :age,
       select: {
         :name,
@@ -123,12 +124,12 @@ defmodule DgraphEx.KwargsTest do
   end
 
   test "executors work" do
-    assert query(orderasc: :age, first: 5) |> render == "(orderasc: age, first: 5)"
+    assert parse(orderasc: :age, first: 5) |> render == "(orderasc: age, first: 5)"
   end
 
   test "complex query" do
     genres_count_var =
-      query([
+      parse([
           as: :genres,
         func: has(:"~genre"),
       select: {
@@ -137,7 +138,7 @@ defmodule DgraphEx.KwargsTest do
     ])
 
     reversed_genre =
-      query([
+      parse([
         orderasc: val(:num_genres),
            first: 5,
           select: {
@@ -147,7 +148,7 @@ defmodule DgraphEx.KwargsTest do
       ])
 
     genres_selector =
-      query([
+      parse([
           get: :genres,
           func: uid(:genres),
       orderasc: :name@en,
@@ -157,7 +158,7 @@ defmodule DgraphEx.KwargsTest do
         },
       ])
     complex_query =
-      query([
+      parse([
         genres_count_var,
         genres_selector,
       ])
@@ -165,7 +166,7 @@ defmodule DgraphEx.KwargsTest do
       {
         genres as var(func: has(~genre)) {
           num_genres as count(~genre)
-        } 
+        }
         genres(func: uid(genres), orderasc: name@en) {
           name@en
           ~genre (orderasc: val(num_genres), first: 5) {
@@ -177,7 +178,7 @@ defmodule DgraphEx.KwargsTest do
     """)
   end
 
-  test "mutation set works" do
+  test "render set from model" do
     assert set([
       set: %Person{
         name: "jason",
@@ -186,7 +187,7 @@ defmodule DgraphEx.KwargsTest do
     ])
     |> render
     |> clean_format == clean_format("""
-      mutation {
+      {
         set {
           _:person <name> \"jason\"^^<xs:string> .
           _:person <age> \"33\"^^<xs:int> .
@@ -195,82 +196,82 @@ defmodule DgraphEx.KwargsTest do
     """)
   end
 
-  test "mutation schema works" do
-    assert set([
-      schema: Person
-    ])
-    |> render
-    |> clean_format == clean_format("""
-      mutation {
-        schema {
-          name: string .
-          age: int .
-          works_at: uid .
-        }
-      }
-    """)
-  end
+  # test "mutation schema works" do
+  #   assert set([
+  #     schema: Person
+  #   ])
+  #   |> render
+  #   |> clean_format == clean_format("""
+  #     mutation {
+  #       schema {
+  #         name: string .
+  #         age: int .
+  #         works_at: uid .
+  #       }
+  #     }
+  #   """)
+  # end
 
-  test "mutation delete works for a field" do
-    assert query([
-      delete: field(uid("1234567"), "*", "*")
-    ])
-    |> render
-    |> clean_format == clean_format("""
-      mutation {
-        delete {
-          <1234567> * * .
-        }
-      }
-    """)
-  end
+  # test "mutation delete works for a field" do
+  #   assert query([
+  #     delete: field(uid("1234567"), "*", "*")
+  #   ])
+  #   |> render
+  #   |> clean_format == clean_format("""
+  #     mutation {
+  #       delete {
+  #         <1234567> * * .
+  #       }
+  #     }
+  #   """)
+  # end
 
 
-  test "mutation delete works for tuple of fields " do
-    assert query([
-      delete: {
-        field(uid("1234567"), "*", "*"),
-        field(uid("1234567890"), "*", "*"),
-      }
-    ])
-    |> render
-    |> clean_format == clean_format("""
-      {
-        delete {
-          <1234567> * * .
-          <1234567890> * * .
-      dd  }
-      }
-    """)
-  end
+  # test "mutation delete works for tuple of fields " do
+  #   assert query([
+  #     delete: {
+  #       field(uid("1234567"), "*", "*"),
+  #       field(uid("1234567890"), "*", "*"),
+  #     }
+  #   ])
+  #   |> render
+  #   |> clean_format == clean_format("""
+  #     {
+  #       delete {
+  #         <1234567> * * .
+  #         <1234567890> * * .
+  #     dd  }
+  #     }
+  #   """)
+  # end
 
-  test "a complex mutation" do
-    assert query([
-      delete: {
-        field(uid("0x123"), :name, "Jason"),
-      },
-      set: %Person{
-        name: "Not Jason",
-      },
-      schema: Person,
-    ])
-    |> render
-    |> clean_format == clean_format("""
-      mutation {
-        delete {
-          <0x123> <name> \"Jason\" .
-        }
-        set {
-          _:person <name> \"Not Jason\"^^<xs:string> .
-        }
-        schema {
-          name: string .
-          age: int .
-          works_at: uid .
-        }
-      }
-    """)
-  end
-  
+#   test "a complex mutation" do
+#     assert query([
+#       delete: {
+#         field(uid("0x123"), :name, "Jason"),
+#       },
+#       set: %Person{
+#         name: "Not Jason",
+#       },
+#       schema: Person,
+#     ])
+#     |> render
+#     |> clean_format == clean_format("""
+#       mutation {
+#         delete {
+#           <0x123> <name> \"Jason\" .
+#         }
+#         set {
+#           _:person <name> \"Not Jason\"^^<xs:string> .
+#         }
+#         schema {
+#           name: string .
+#           age: int .
+#           works_at: uid .
+#         }
+#       }
+#     """)
+#   end
+
 
 end

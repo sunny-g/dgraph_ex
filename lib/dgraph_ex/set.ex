@@ -26,13 +26,14 @@ defmodule DgraphEx.Set do
       def set() do
         %Set{}
       end
-  
+
       def set(%module{} = model) do
         check_model(model)
         set(Vertex.setter_subject(model), model)
       end
+
       def set(items) when is_list(items) do
-        DgraphEx.Kwargs.query(items)
+        DgraphEx.Kwargs.parse(items)
       end
 
       def set(subject, %module{} = model) do
@@ -80,7 +81,7 @@ defmodule DgraphEx.Set do
   defp remove_uid(x) do
     x
   end
-  
+
   defp left_pad(item, count, padding) do
     1..count
     |> Enum.map(fn _ -> padding end)
