@@ -43,7 +43,7 @@ defmodule DgraphEx.Field do
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.{Query, Field, Set, Alter}
+      alias DgraphEx.{Query, Field, Set, Alter, Delete}
 
       def field(%Set{} = m, subject, predicate, object, type) do
         new_field =
@@ -56,14 +56,11 @@ defmodule DgraphEx.Field do
       end
 
       def field(%Alter{} = m, predicate, type, options) do
-
-        # new_field =
-        #   Field.new(predicate, type)
-        #   |> Field.put_subject(subject)
-        #   |> Field.put_object(object)
-        # # first = %{ first | fields: [ new_field | first.fields ] }
         Alter.put_field(m, field(predicate, type, options))
-        # %{ m | fields: [ first | rest ]}
+      end
+
+      def field(%Delete{} = m, predicate, type, options) do
+        Delete.put_field(m, field(predicate, type, options))
       end
 
       def field(%Query{} = q, subject, predicate, object, type) do
