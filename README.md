@@ -1,11 +1,18 @@
 
 # branch 'support-dgraph-v1'
 
-This fork is a work in progress to quickly add support for Dgraph v1.x
+This fork is a **work in progress** to quickly add support for Dgraph v1.x
 
 Please check this issue on the original repo.
 https://github.com/elbow-jason/dgraph_ex/issues/45
 
+Right now only the **function syntax** is working.
+
+If you have a (dgraph server running)[https://docs.dgraph.io/get-started/#from-installed-binary] you can execute a quick test demonstrating persistance.
+
+```
+mix test examples/persistance_demo.exs
+```
 
 ---
 
