@@ -11,7 +11,7 @@ Right now only the **function syntax** is working.
 If you have a [dgraph server running](https://docs.dgraph.io/get-started/#from-installed-binary) you can execute a quick test demonstrating persistance.
 
 ```
-mix test examples/persistance_demo.exs
+mix test examples/demo_test.exs
 ```
 
 ---
