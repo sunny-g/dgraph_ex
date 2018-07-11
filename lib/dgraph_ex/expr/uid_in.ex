@@ -1,7 +1,7 @@
 defmodule DgraphEx.Expr.UidIn do
   @moduledoc """
   An example from https://docs.dgraph.io/query-language/#uid-in :
-  
+
   ```
     {
       caro(func: eq(name, "Marc Caro")) {
@@ -37,8 +37,8 @@ defmodule DgraphEx.Expr.UidIn do
     }
   end
 
-  def render(%UidIn{predicate: predicate, uid: uid}) when is_atom(predicate) and is_binary(uid) do
+  def render(%UidIn{predicate: predicate, uid: uid})
+      when is_atom(predicate) and is_binary(uid) do
     "uid_in(#{predicate}, #{uid})"
   end
-  
 end

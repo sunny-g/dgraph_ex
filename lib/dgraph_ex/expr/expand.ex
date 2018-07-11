@@ -13,15 +13,8 @@ defmodule DgraphEx.Expr.Expand do
       end
     end
   end
-  
-  def new(label) when is_atom(label) do
-    %Expand{
-      label: label
-    }
-  end
 
-  def render(%Expand{label: label}) when is_atom(label) do
-    "expand(#{label})"
-  end
+  def new(label) when is_atom(label), do: %Expand{label: label}
 
+  def render(%Expand{label: label}) when is_atom(label), do: "expand(#{label})"
 end

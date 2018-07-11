@@ -14,12 +14,7 @@ defmodule DgraphEx.Expr.Val do
     end
   end
 
-  def new(label) when is_atom(label) do
-    %Val{label: label}
-  end
+  def new(label) when is_atom(label), do: %Val{label: label}
 
-  def render(%Val{label: label}) do
-    "val("<>(label |> Util.as_rendered)<>")"
-  end
-
+  def render(%Val{label: label}), do: "val("<>(label |> Util.as_rendered)<>")"
 end

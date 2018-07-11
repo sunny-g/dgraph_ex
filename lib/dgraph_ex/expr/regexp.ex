@@ -18,7 +18,7 @@ defmodule DgraphEx.Expr.Regexp do
   def new(label, regex) when is_atom(label) and is_binary(regex) do
     new(label, Regex.compile!(regex))
   end
-  
+
   def new(label, regex) when is_atom(label) do
     if Regex.regex?(regex) do
       %Regexp{label: label, regex: regex}
@@ -38,11 +38,7 @@ defmodule DgraphEx.Expr.Regexp do
     |> append_options(regex)
   end
 
-  defp wrap_slashes(str) do
-    "/"<>str<>"/"
-  end
+  defp wrap_slashes(str), do: "/" <> str <> "/"
 
-  defp append_options(str, regex) do
-    str<>Regex.opts(regex)
-  end
+  defp append_options(str, regex), do: str <> Regex.opts(regex)
 end

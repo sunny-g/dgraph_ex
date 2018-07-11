@@ -5,32 +5,20 @@ defmodule DgraphEx.Alter do
     fields: []
   ]
 
-  @doc """
-  A static string that is the http path for altering a schema.
-
-      iex> DgraphEx.Alter.path
-      "/alter"
-  """
-  def path do
-    "/alter"
-  end
-
   defmacro __using__(_) do
     quote do
-
-      def alter() do
-        %Alter{}
-      end
-
+      def alter(), do: %Alter{}
     end
   end
 
   def put_field(%Alter{fields: prev_fields} = alter, %Field{} = field) do
-    %{ alter | fields: [ field | prev_fields ]}
+    %{alter | fields: [field | prev_fields]}
   end
 
   @doc """
-  Returns a DgraphEx.Alter struct with the given fields. default [].
+  Returns a DgraphEx.Alter struct with the given fields (defaults to []).
+
+  ## Examples:
 
       iex> DgraphEx.Alter.new
       %DgraphEx.Alter{fields: []}
@@ -38,23 +26,23 @@ defmodule DgraphEx.Alter do
       iex> DgraphEx.Alter.new([%DgraphEx.Field{predicate: :name}])
       %DgraphEx.Alter{fields: [%DgraphEx.Field{predicate: :name}]}
   """
-  def new(fields \\ []) when is_list(fields) do
-    %Alter{fields: fields}
-  end
+  def new(fields \\ []) when is_list(fields), do: %Alter{fields: fields}
 
   @doc """
   Appends a Field struct to the fields (uh...) field of the alter struct.
+
+  ## Examples:
 
       iex> DgraphEx.Alter.new() |> DgraphEx.Alter.append(%DgraphEx.Field{predicate: :name})
       %DgraphEx.Alter{fields: [%DgraphEx.Field{predicate: :name}]}
   """
   def append(%Alter{} = model, %Field{} = field) do
-    %{ model | fields: model.fields ++ [field] }
+    %{model | fields: model.fields ++ [field]}
   end
 
 
   @doc """
-  Renders
+  Renders the DgraphEx.Alter struct as a string
   """
   def render(%__MODULE__{fields: fields}) do
     fields
@@ -62,5 +50,4 @@ defmodule DgraphEx.Alter do
     |> Enum.join("\n")
     |> Kernel.<>("\n")
   end
-
 end

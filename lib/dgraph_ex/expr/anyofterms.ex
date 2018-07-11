@@ -22,9 +22,9 @@ defmodule DgraphEx.Expr.Anyofterms do
     }
   end
 
-  def render(%Anyofterms{label: label, value: value}) when is_atom(label) and is_binary(value) do
+  def render(%Anyofterms{label: label, value: value})
+      when is_atom(label) and is_binary(value) do
     {:ok, literal_value} = Util.as_literal(value, :string)
-    "anyofterms("<>Util.as_rendered(label)<>", "<>literal_value<>")"
+    "anyofterms(" <> Util.as_rendered(label) <> ", " <> literal_value <> ")"
   end
-
 end

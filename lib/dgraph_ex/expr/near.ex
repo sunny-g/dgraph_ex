@@ -33,9 +33,9 @@ defmodule DgraphEx.Expr.Near do
   defp render_args(args) when is_list(args) do
     args
     |> Enum.map(fn
-      item when is_list(item) -> Poison.encode!(item)
-      item -> to_string(item)
-    end)
+        item when is_list(item) -> Poison.encode!(item)
+        item -> to_string(item)
+      end)
     |> Enum.join(", ")
   end
 end

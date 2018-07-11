@@ -31,7 +31,6 @@ defmodule DgraphEx.Expr.Agg do
       max : select the maximum value
       sum : sum all values in value variable varName
       avg : calculate the average of values in varName
-
       """
       def render(%__MODULE__{val: %Val{} = val}) do
         val
@@ -39,10 +38,7 @@ defmodule DgraphEx.Expr.Agg do
         |> do_render()
       end
 
-      defp do_render(rendered_val) do
-        "#{unquote(name)}(#{rendered_val})"
-      end
-
+      defp do_render(rendered_val), do: "#{unquote(name)}(#{rendered_val})"
     end
   end
-end 
+end

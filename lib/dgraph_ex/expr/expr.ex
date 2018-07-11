@@ -2,8 +2,8 @@ defmodule DgraphEx.Expr do
 
   defmacro __using__(_) do
     alias DgraphEx.Expr
-    quote do
 
+    quote do
       # indexes
       use Expr.Eq
       use Expr.Allofterms
@@ -39,8 +39,6 @@ defmodule DgraphEx.Expr do
       use Expr.Has
       use Expr.Expand
       use Expr.UidIn
-
     end
   end
-  
 end

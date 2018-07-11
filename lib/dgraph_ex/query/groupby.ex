@@ -26,12 +26,12 @@ defmodule DgraphEx.Query.Groupby do
   end
 
   @doc """
-  Examples:
+    Examples:
 
     iex> %DgraphEx.Query.Groupby{predicate: :thing} |> DgraphEx.Query.Groupby.render
     "@groupby(thing)"
 
-    """
+  """
   def render(%Groupby{predicate: p}) when is_atom(p) do
     "@groupby(#{p})"
   end

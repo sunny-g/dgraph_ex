@@ -16,7 +16,6 @@ defmodule DgraphEx.Expr.Contains do
     end
   end
 
-
   def new(label, geo_json) when is_atom(label) and is_list(geo_json) do
     %Contains{
       label: label,
@@ -27,5 +26,4 @@ defmodule DgraphEx.Expr.Contains do
   def render(%Contains{label: label, geo_json: geo_json}) when is_atom(label) and is_list(geo_json) do
     "contains(#{label}, #{Poison.encode!(geo_json)})"
   end
-
 end

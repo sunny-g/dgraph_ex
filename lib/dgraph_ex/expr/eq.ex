@@ -52,8 +52,5 @@ defmodule DgraphEx.Expr.Eq do
     |> do_render(literal_value)
   end
 
-  defp do_render(label, value) do
-    "eq(#{label}, #{value})"
-  end
-
+  defp do_render(label, value), do: "eq(#{label}, #{value})"
 end

@@ -26,5 +26,4 @@ defmodule DgraphEx.Expr.Allofterms do
     {:ok, literal_value} = Util.as_literal(value, :string)
     "allofterms("<>Util.as_rendered(label)<>", "<>literal_value<>")"
   end
-
 end

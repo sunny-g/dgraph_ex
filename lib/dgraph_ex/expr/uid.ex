@@ -13,10 +13,14 @@ defmodule DgraphEx.Expr.Uid do
   alias DgraphEx.Expr.Uid
   alias DgraphEx.Util
 
-
   defstruct [
     :value,
     :type,
+  ]
+
+  @types [
+    :literal,
+    :expression,
   ]
 
   defmacro __using__(_) do
@@ -26,11 +30,6 @@ defmodule DgraphEx.Expr.Uid do
       end
     end
   end
-
-  @types [
-    :literal,
-    :expression,
-  ]
 
   def new(value) when is_binary(value) do
     new(value, :literal)
@@ -56,17 +55,11 @@ defmodule DgraphEx.Expr.Uid do
   This function is used by Func to ensure that a uid string ("0x9") is rendered
   as an expression literal `uid(0x9)` instead of an actual literal `<0x9>`
   """
-  def as_expression(%Uid{} = u) do
-    %{ u | type: :expression }
-  end
+  def as_expression(%Uid{} = u), do: %{u | type: :expression}
 
-  def as_literal(%Uid{} = u) do
-    %{ u | type: :literal }
-  end
-  
-  def as_naked(%Uid{} = u) do
-    %{ u | type: :naked}
-  end
+  def as_literal(%Uid{} = u), do: %{u | type: :literal}
+
+  def as_naked(%Uid{} = u), do: %{u | type: :naked}
 
   def render(%Uid{value: value}) when is_atom(value) do
     render_expression([value])
@@ -92,13 +85,8 @@ defmodule DgraphEx.Expr.Uid do
       |> Enum.join(", ")
     "uid("<>args<>")"
   end
-
 end
 
 defimpl String.Chars, for: DgraphEx.Expr.Uid do
-  
-  def to_string(uid) do
-    DgraphEx.Expr.Uid.render(uid)
-  end
-
+  def to_string(uid), do: DgraphEx.Expr.Uid.render(uid)
 end

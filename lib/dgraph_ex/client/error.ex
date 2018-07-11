@@ -1,4 +1,4 @@
-defmodule DgraphEx.Error do
+defmodule DgraphEx.Client.Error do
   defstruct [
     code: nil,
     message: nil

@@ -1,5 +1,5 @@
 defmodule DgraphEx.Schema do
-  alias DgraphEx.{Schema, Query, Field, Mutation}
+  alias DgraphEx.{Schema, Query, Field}
 
   @naked_fields [
     :type,
@@ -46,19 +46,17 @@ defmodule DgraphEx.Schema do
       end
       def schema(module) when is_atom(module) do
         if Vertex.is_model?(module) do
-          fields = 
+          fields =
             module.__vertex__(:fields)
             |> Enum.map(fn %Field{predicate: pred} -> pred end)
           %Schema{
-            fields: fields, 
+            fields: fields,
           }
         else
           raise_non_vertex_module(module)
         end
       end
-      def schema(%module{}) do
-        schema(module)
-      end
+      def schema(%module{}), do: schema(module)
     end
   end
 
@@ -68,6 +66,4 @@ defmodule DgraphEx.Schema do
   def render(%Schema{fields: fields}) when length(fields) > 0 do
     "schema(pred: [#{fields |> Enum.join(", ")}]) {\n#{@naked_fields |> Enum.join("\n")}\n}"
   end
-
-
 end

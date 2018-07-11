@@ -16,7 +16,6 @@ defmodule DgraphEx.Expr.Intersects do
     end
   end
 
-
   def new(label, [[ [x, y] | _] |_] = geo_json) when is_atom(label) and is_float(x) and is_float(y) do
     %Intersects{
       label: label,
@@ -27,5 +26,4 @@ defmodule DgraphEx.Expr.Intersects do
   def render(%Intersects{label: label, geo_json: [[ [x, y] | _] |_] = geo_json }) when is_atom(label) and is_float(x) and is_float(y) do
     "intersects(#{label}, #{Poison.encode!(geo_json)})"
   end
-
 end

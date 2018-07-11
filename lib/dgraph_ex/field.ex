@@ -1,5 +1,5 @@
 defmodule DgraphEx.Field do
-  alias DgraphEx.{Field, Vertex, Expr}
+  alias DgraphEx.{Alter, Delete, Expr, Field, Query, Set, Vertex}
   alias Expr.{Uid}
 
   defstruct [
@@ -28,14 +28,16 @@ defmodule DgraphEx.Field do
     :geo,
     :uid,
   ]
-
+  @is_uid [
+    :uid,
+    :uid_literal,
+  ]
 
   @doc """
   This macro is for use inside vertex/2 macro blocks (for field definitions).
   """
   defmacro field(predicate, type, options \\ []) do
     quote do
-      alias DgraphEx.{Field}
       field = Field.new(unquote(predicate), unquote(type), unquote(options))
       Module.put_attribute(__MODULE__, :vertex_fields, field)
     end
@@ -43,11 +45,9 @@ defmodule DgraphEx.Field do
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.{Query, Field, Set, Alter, Delete}
-
       def field(%Set{} = m, subject, predicate, object, type) do
-        new_field =
-          Field.new(predicate, type)
+        new_field = predicate
+          |> Field.new(type)
           |> Field.put_subject(subject)
           |> Field.put_object(object)
         # first = %{ first | fields: [ new_field | first.fields ] }
@@ -64,34 +64,36 @@ defmodule DgraphEx.Field do
       end
 
       def field(%Query{} = q, subject, predicate, object, type) do
-        new_field =
-          Field.new(predicate, type)
+        new_field = predicate
+          |> Field.new(type)
           |> Field.put_subject(subject)
           |> Field.put_object(object)
         Query.put_sequence(q, new_field)
       end
 
       def field(predicate, type, options \\ [])
-      def field(predicate, type, options) when is_atom(predicate) and is_atom(type) and is_list(options) do
+      def field(predicate, type, options)
+          when is_atom(predicate) and is_atom(type) and is_list(options) do
         Field.new(predicate, type, options)
       end
 
-      def field(subject, predicate, object) when subject == "*"   and is_atom(predicate)
-                                            when is_atom(subject) and predicate == "*"
-                                            when is_atom(subject) and is_atom(predicate)
-                                            when subject == "*"   and predicate == "*" do
+      def field(subject, predicate, object)
+          when subject == "*"   and is_atom(predicate)
+          when is_atom(subject) and predicate == "*"
+          when is_atom(subject) and is_atom(predicate)
+          when subject == "*"   and predicate == "*" do
         Field.delete_field(subject, predicate, object)
       end
-      def field(%Uid{} = subject, predicate, object) when is_atom(predicate)
-                                                     when predicate == "*" do
+      def field(%Uid{} = subject, predicate, object)
+          when is_atom(predicate)
+          when predicate == "*" do
         Field.delete_field(subject, predicate, object)
       end
-
-
     end
   end
 
-  def new(predicate, type, options \\ []) when is_atom(predicate) and type in @allowed_types and is_list(options) do
+  def new(predicate, type, options \\ [])
+      when is_atom(predicate) and type in @allowed_types and is_list(options) do
     %Field{
       predicate:  predicate,
       type:       type,
@@ -113,32 +115,24 @@ defmodule DgraphEx.Field do
     }
   end
 
-  def put_subject(fields, subject) when is_list(fields) do
-    fields
-    |> Enum.map(fn f -> put_subject(f, subject) end)
-  end
-  def put_subject(%Field{} = field, subject) when is_atom(subject) do
-    %{ field | subject: subject }
-  end
-  def put_subject(fields, subject) when is_list(fields) do
-    fields
-    |> Enum.map(fn f -> put_subject(f, subject) end)
-  end
   def put_subject(%Field{} = field, %Uid{} = subject) do
-    %{ field | subject: subject }
+    %{field | subject: subject}
   end
+  def put_subject(fields, subject)
+      when is_list(fields), do: Enum.map(fields, &put_subject(&1, subject))
+  def put_subject(%Field{} = field, subject)
+      when is_atom(subject), do: %{field | subject: subject}
 
   def put_object(%Field{type: :int} = field, value) do
     case value do
       x when is_integer(x) ->
         do_put_object(field, x)
       x when is_binary(x) ->
-        do_put_object(field, x |> String.to_integer)
+        do_put_object(field, String.to_integer(x))
     end
   end
-  def put_object(%Field{type: :string} = field, value) when is_binary(value) do
-    do_put_object(field, value)
-  end
+  def put_object(%Field{type: :string} = field, value)
+      when is_binary(value), do: do_put_object(field, value)
   def put_object(%Field{type: :date} = field, value) do
     case value do
       %Date{} = date ->
@@ -163,48 +157,38 @@ defmodule DgraphEx.Field do
   def put_object(%Field{type: :uid} = field, %Uid{} = uid) do
     do_put_object(field, uid)
   end
-  def put_object(%Field{type: :uid} = field, uid) when is_atom(uid) do
-    do_put_object(field, uid)
-  end
+  def put_object(%Field{type: :uid} = field, uid)
+      when is_atom(uid), do: do_put_object(field, uid)
   def put_object(%Field{type: :uid_literal} = field, %Uid{} = uid) do
     do_put_object(field, uid |> Uid.as_literal)
   end
-  def put_object(%Field{type: :uid_literal} = field, ""<>uid) do
+  def put_object(%Field{type: :uid_literal} = field, uid)
+      when is_bitstring(uid) do
     do_put_object(field, uid |> Uid.new |> Uid.as_literal)
   end
-  def put_object(%Field{type: :geo} = field, coords) when is_list(coords) do
-    do_put_object(field, coords)
-  end
-  def put_object(%Field{type: :password} = field, value) when is_binary(value) do
-    do_put_object(field, value)
-  end
+  def put_object(%Field{type: :geo} = field, coords)
+      when is_list(coords), do: do_put_object(field, coords)
+  def put_object(%Field{type: :password} = field, value)
+      when is_binary(value), do: do_put_object(field, value)
 
-  defp do_put_object(field, value) do
-    %{ field | object: value }
-  end
+  defp do_put_object(field, value), do: %{field | object: value}
 
-
-  def as_setter(%Field{object: nil}) do
-    ""
-  end
-  def as_setter(%Field{type: :uid, object: %Uid{}} = f) do
-    render_setter(f)
-  end
+  def as_setter(%Field{object: nil}), do: ""
+  def as_setter(%Field{type: :uid, object: %Uid{}} = f), do: render_setter(f)
   def as_setter(%Field{type: :uid, predicate: predicate, object: %{__struct__: _} = model} = f) do
     child_subject = Vertex.setter_subject(model, predicate)
-    child_fields =
-      child_subject
+    child_fields = child_subject
       |> Vertex.populate_fields(model)
       |> Enum.filter(fn
-        %{predicate: :_uid_} -> false
-        _ -> true
-      end)
+          %{predicate: :_uid_} -> false
+          _ -> true
+        end)
       |> Enum.map(&as_setter/1)
-    [ as_setter(%{f | object: child_subject }) | child_fields ]
+    [as_setter(%{f | object: child_subject}) | child_fields]
   end
-  def as_setter(%Field{object: object} = f) when not is_nil(object) do
-    render_setter(f)
-  end
+  def as_setter(%Field{object: object} = f)
+      when not is_nil(object), do: render_setter(f)
+
   defp render_setter(f) do
     [
       render_setter_subject(f),
@@ -217,23 +201,18 @@ defmodule DgraphEx.Field do
     |> Enum.join(" ")
   end
 
-  defp render_setter_subject(%Field{subject: subject}) when is_atom(subject) do
-    "_:#{subject}"
-  end
+  defp render_setter_subject(%Field{subject: subject})
+      when is_atom(subject), do: "_:#{subject}"
   defp render_setter_subject(%Field{subject: %Uid{} = subject}) do
-    subject
-    |> Uid.render
+    Uid.render(subject)
   end
 
   defp render_setter_predicate(%Field{predicate: predicate}) do
     "<" <> to_string(predicate) <> ">"
   end
 
-  @is_uid [
-    :uid,
-    :uid_literal,
-  ]
-  defp render_setter_object(%Field{type: type, object: object}) when type in @is_uid do
+  defp render_setter_object(%Field{type: type, object: object})
+      when type in @is_uid do
     case object do
       nil ->
         nil
@@ -257,14 +236,15 @@ defmodule DgraphEx.Field do
   #   |> Uid.new
   #   |> Uid.render
   # end
-  defp render_setter_object(%Field{object: [long, lat] = point, type: :geo}) when is_float(long) and is_float(lat) do
+  defp render_setter_object(%Field{object: [long, lat] = point, type: :geo})
+      when is_float(long) and is_float(lat) do
     point
     |> Poison.encode!
     |> wrap_geo_point
     |> Kernel.<>(type_annotation(:geo))
   end
   defp render_setter_object(%Field{object: [[[long, lat] | _ ] = shape | _ ] = polygon, type: :geo})
-    when length(shape) >= 4 and is_float(long) and is_float(lat) do
+      when length(shape) >= 4 and is_float(long) and is_float(lat) do
     polygon
     |> Poison.encode!
     |> wrap_geo_polygon
@@ -275,9 +255,7 @@ defmodule DgraphEx.Field do
     (object |> stringify |> wrap_quotes) <> type_annotation(type)
   end
 
-  def as_setter_template(%Field{object: nil}) do
-    ""
-  end
+  def as_setter_template(%Field{object: nil}), do: ""
   def as_setter_template(%Field{object: object} = f) when not is_nil(object) do
     [
       "_:#{f.subject}",
@@ -290,13 +268,9 @@ defmodule DgraphEx.Field do
     |> Enum.join(" ")
   end
 
-  def as_variables(%Field{} = f) do
-    {dollarify(f), f.object, f.type}
-  end
+  def as_variables(%Field{} = f), do: {dollarify(f), f.object, f.type}
 
-  def as_schema(%Field{predicate: :_uid_}) do
-    nil
-  end
+  def as_schema(%Field{predicate: :_uid_}), do: nil
   def as_schema(%Field{} = f) do
     [
       to_string(f.predicate) <> ":",
@@ -321,111 +295,77 @@ defmodule DgraphEx.Field do
     |> Enum.join(" ")
   end
 
-  defp render_delete_subject("*") do
-    "*"
-  end
+  defp render_delete_subject("*"), do: "*"
   defp render_delete_subject(%Uid{} = uid) do
     uid |> Uid.as_literal |> Uid.render
   end
 
-  defp render_delete_pred("*") do
-    "*"
-  end
-  defp render_delete_pred(pred) do
-    "<"<>to_string(pred)<>">"
-  end
+  defp render_delete_pred("*"), do: "*"
+  defp render_delete_pred(pred), do: "<" <> to_string(pred) <> ">"
 
-  defp render_delete_object("*") do
-    "*"
-  end
-  defp render_delete_object(""<>object) do
-    wrap_quotes(object)
-  end
-  defp render_delete_object(something) do
-    to_string(something)
-  end
-
+  defp render_delete_object("*"), do: "*"
+  defp render_delete_object(""<>object), do: wrap_quotes(object)
+  defp render_delete_object(something), do: to_string(something)
 
   def dollarify(%Field{} = f) do
-     dollarify(to_string(f.subject) <> "_" <> to_string(f.predicate))
+    dollarify(to_string(f.subject) <> "_" <> to_string(f.predicate))
   end
-  def dollarify(item) do
-    "$" <> to_string(item)
-  end
+  def dollarify(item), do: "$" <> to_string(item)
 
-  def stringify(value) do
-    case value do
-      x when is_list(x) -> x |> Poison.encode!
-      %Date{} = x       -> x |> Date.to_iso8601 |> Kernel.<>("T00:00:00.0+00:00")
-      %DateTime{} = x   -> x |> DateTime.to_iso8601 |> String.replace("Z", "+00:00")
-      x                 -> x |> to_string
-    end
+  def stringify(value) when is_list(value), do: Poison.encode!(value)
+  def stringify(%Date{} = value) do
+    value
+    |> Date.to_iso8601
+    |> Kernel.<>("T00:00:00.0+00:00")
   end
+  def stringify(%DateTime{} = value) do
+    value
+    |> DateTime.to_iso8601
+    |> String.replace("Z", "+00:00")
+  end
+  def stringify(value), do: to_string(value)
 
-  defp render_index(%Field{index: true, type: type}) do
-    "@index(#{type})"
-  end
+  defp render_index(%Field{index: true, type: type}), do: "@index(#{type})"
   defp render_index(%Field{index: indices}) when is_list(indices) do
-    "@index("<> (indices |> Enum.map(&to_string/1) |> Enum.join(", ")) <>")"
+    indices = indices
+      |> Enum.map(&to_string/1)
+      |> Enum.join(", ")
+    "@index(" <> indices <> ")"
   end
-  defp render_index(%Field{index: nil}) do
-    nil
-  end
+  defp render_index(%Field{index: nil}), do: nil
 
-  defp render_count(%Field{count: true}) do
-    "@count"
-  end
-  defp render_count(_) do
-    nil
-  end
+  defp render_count(%Field{count: true}), do: "@count"
+  defp render_count(_), do: nil
 
-  defp render_reverse(%Field{reverse: true}) do
-    "@reverse"
-  end
-  defp render_reverse(_) do
-    nil
-  end
+  defp render_reverse(%Field{reverse: true}), do: "@reverse"
+  defp render_reverse(_), do: nil
 
   defp filter_empty(items) do
-    items
-    |> Enum.filter(fn
+    Enum.filter(items, fn
       "" -> nil
       item -> item
     end)
   end
 
-  def type_annotation(type) do
-    case type do
-      :string   -> "^^<xs:string>"
-      :datetime -> "^^<xs:dateTime>"
-      :date     -> "^^<xs:date>"
-      :int      -> "^^<xs:int>"
-      :bool     -> "^^<xs:boolean>"
-      :float    -> "^^<xs:float>"
-      :password -> "^^<pwd:password>"
-      :geo      -> "^^<geo:geojson>"
-      :uid      -> ""
-    end
-  end
+  def type_annotation(:string),   do: "^^<xs:string>"
+  def type_annotation(:datetime), do: "^^<xs:dateTime>"
+  def type_annotation(:date),     do: "^^<xs:date>"
+  def type_annotation(:int),      do: "^^<xs:int>"
+  def type_annotation(:bool),     do: "^^<xs:boolean>"
+  def type_annotation(:float),    do: "^^<xs:float>"
+  def type_annotation(:password), do: "^^<pwd:password>"
+  def type_annotation(:geo),      do: "^^<geo:geojson>"
+  def type_annotation(:uid),      do: ""
 
-  def wrap_quotes(item) do
-    "\"" <> item <> "\""
-  end
+  def wrap_quotes(item), do: "\"" <> item <> "\""
 
-  defp render_facets(%Field{facets: facets}) when facets in [[], nil] do
-    ""
-  end
-  defp render_facets(%Field{facets: facets}) do
-    case facets do
-      nil ->
-        ""
-      %{} ->
-        facet_string =
-          facets
-          |> Enum.map(fn {k, v} -> "#{k}=#{stringify(v)}" end)
-          |> Enum.join(",")
-        " ("<>facet_string<>")"
-    end
+  defp render_facets(%Field{facets: nil}), do: ""
+  defp render_facets(%Field{facets: []}), do: ""
+  defp render_facets(%Field{facets: facets}) when is_list(facets) do
+    facet_string = facets
+      |> Enum.map(fn {k, v} -> "#{k}=#{stringify(v)}" end)
+      |> Enum.join(",")
+    " (" <> facet_string <> ")"
   end
 
   defp wrap_geo_point(point) do
@@ -434,6 +374,4 @@ defmodule DgraphEx.Field do
   defp wrap_geo_polygon(polygon) do
     ~s("{'type':'Polygon','coordinates':#{polygon}}")
   end
-
 end
-

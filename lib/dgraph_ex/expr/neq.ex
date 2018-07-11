@@ -27,7 +27,6 @@ defmodule DgraphEx.Expr.Neq do
       ]
 
       @doc """
-
       Syntax Examples: for inequality IE
 
         IE(predicate, value)
@@ -42,7 +41,6 @@ defmodule DgraphEx.Expr.Neq do
         |> module.render
         |> do_render(literal_value)
       end
-
       def render(%__MODULE__{label: label, value: value, type: type}) when is_atom(label) do
         {:ok, literal_value} = Util.as_literal(value, type)
         label
@@ -50,10 +48,7 @@ defmodule DgraphEx.Expr.Neq do
         |> do_render(literal_value)
       end
 
-      defp do_render(label, value) do
-        "#{unquote(name)}(#{label}, #{value})"
-      end
-
+      defp do_render(label, value), do: "#{unquote(name)}(#{label}, #{value})"
     end
   end
-end 
+end

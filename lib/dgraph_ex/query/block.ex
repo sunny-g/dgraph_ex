@@ -1,7 +1,7 @@
 defmodule DgraphEx.Query.Block do
-  alias DgraphEx.Query.Block
-  alias DgraphEx.Query
   alias DgraphEx.Expr.Uid
+  alias DgraphEx.Query
+  alias Query.Block
 
   defstruct [
     label: nil,
@@ -20,6 +20,7 @@ defmodule DgraphEx.Query.Block do
     quote do
       alias DgraphEx.Query
       alias Query.{Block}
+
       def func(%Query{} = q, label, %{__struct__: _} = expr) do
         b = Block.new(label, [func: expr])
         Query.put_sequence(q, b)
@@ -27,7 +28,7 @@ defmodule DgraphEx.Query.Block do
       def func(label, %{__struct__: _} = expr) do
         Block.new(label, [func: expr])
       end
-      
+
       def block(label, args) when is_atom(label) and is_list(args) do
         Block.new(label, args)
       end
@@ -48,9 +49,7 @@ defmodule DgraphEx.Query.Block do
   end
 
   def new(kwargs) when is_list(kwargs) do
-    %Block{
-      keywords: kwargs,
-    }
+    %Block{keywords: kwargs}
   end
   def new(label, kwargs) when is_atom(label) and is_list(kwargs) do
     %Block{
@@ -59,24 +58,18 @@ defmodule DgraphEx.Query.Block do
     }
   end
   def aliased(key, val) do
-    %Block{
-      aliased: {key, val}
-    }
+    %Block{aliased: {key, val}}
   end
 
-  def put_kwarg(%Block{} = b, {k, v}) do
-    put_kwarg(b, k, v)
-  end
+  def put_kwarg(%Block{} = b, {k, v}), do: put_kwarg(b, k, v)
   def put_kwarg(%Block{keywords: kw} = b, key, value) do
-    %{ b | keywords: kw ++ [{key, value}] }
+    %{b | keywords: kw ++ [{key, value}]}
   end
 
   def render(%Block{aliased: {key, %{__struct__: module} = model}}) do
     "#{key}: #{module.render(model)}"
   end
-  def render(%Block{aliased: {key, value}}) do
-    "#{key}: #{value}"
-  end
+  def render(%Block{aliased: {key, value}}), do: "#{key}: #{value}"
   def render(%Block{label: label} = b) do
     "#{label}("<> render_keywords(b) <>")"
   end
@@ -109,9 +102,7 @@ defmodule DgraphEx.Query.Block do
     end
   end
 
-  defp do_render([], []) do
-    "{ }"
-  end
+  defp do_render([], []), do: "{ }"
   defp do_render([], lines) do
     lines
     |> Enum.reverse
@@ -141,7 +132,7 @@ defmodule DgraphEx.Query.Block do
   defp do_render([%{__struct__: module} = model | rest ], lines) do
     # for exprs
     do_render(rest, [ module.render(model) | lines ])
-  end 
+  end
   defp do_render([variable, :as, %{__struct__: module} = model | rest ], lines) when is_atom(variable) do
     # for aliases
     do_render(rest, ["#{variable} as #{module.render(model)}" | lines ])
@@ -155,7 +146,5 @@ defmodule DgraphEx.Query.Block do
     do_render(rest, [ to_string(variable) | lines ])
   end
 
-  defp wrap_curlies(block) do
-    "{ "<>block<>" }"
-  end
+  defp wrap_curlies(block), do: "{ " <> block <> " }"
 end
