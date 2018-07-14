@@ -1,10 +1,9 @@
-defmodule DgraphEx.ContainsTest do
-
-  use ExUnit.Case
+defmodule DgraphEx.Expr.ContainsTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Contains
+  import TestHelpers
 
   import DgraphEx
-  import TestHelpers
 
   test "contains renders correctly with a shape" do
     geo_json = [[
@@ -29,5 +28,4 @@ defmodule DgraphEx.ContainsTest do
       contains(loc, #{geo_string})
     """)
   end
-
 end

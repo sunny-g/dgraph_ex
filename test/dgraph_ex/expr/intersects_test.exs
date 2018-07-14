@@ -1,10 +1,9 @@
-defmodule DgraphEx.IntersectsTest do
-
-  use ExUnit.Case
+defmodule DgraphEx.Expr.IntersectsTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Intersects
+  import TestHelpers
 
   import DgraphEx
-  import TestHelpers
 
   test "intersects renders correctly" do
     geo_json = [[
@@ -20,5 +19,4 @@ defmodule DgraphEx.IntersectsTest do
       intersects(loc, #{geo_string})
     """)
   end
-
 end

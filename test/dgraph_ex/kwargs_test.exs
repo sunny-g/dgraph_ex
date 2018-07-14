@@ -1,16 +1,15 @@
 defmodule DgraphEx.KwargsTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest DgraphEx.Kwargs
+  import TestHelpers
 
   import DgraphEx
   import DgraphEx.Kwargs
-  import TestHelpers
-
   alias DgraphEx.ModelPerson, as: Person
 
-  # test "a query call returns a query" do
-  #   assert query([]) == %DgraphEx.Query{}
-  # end
+  test "a query call returns a query" do
+    assert query([]) == %DgraphEx.Query{}
+  end
 
   test "a simple get func select query renders correctly" do
     assert clean_format("""

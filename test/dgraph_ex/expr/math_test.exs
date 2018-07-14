@@ -1,14 +1,14 @@
-defmodule DgraphEx.ExprMathTest do
-  use ExUnit.Case
+defmodule DgraphEx.Expr.MathTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Math
+  alias DgraphEx.Expr.Math
 
   import DgraphEx
-  alias DgraphEx.Expr.Math
 
   test "math/1 is callable" do
     math(1 + 1)
   end
-  
+
   test "math/1 renders atoms correctly" do
     assert math(:paths / (:num_films / :paths)) |> Math.render == "math(paths / (num_films / paths))"
   end

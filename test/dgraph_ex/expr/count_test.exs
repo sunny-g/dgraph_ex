@@ -1,10 +1,9 @@
-defmodule DgraphEx.CountTest do
-
-  use ExUnit.Case
+defmodule DgraphEx.Expr.CountTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Count
+  import TestHelpers
 
   import DgraphEx
-  import TestHelpers
 
   test "count with simple value" do
     assert render(count(:G)) == clean_format("count(G)")

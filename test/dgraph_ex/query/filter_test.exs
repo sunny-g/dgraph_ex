@@ -1,9 +1,9 @@
-defmodule DgraphEx.FilterTest do
-  use ExUnit.Case
+defmodule DgraphEx.Query.FilterTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Query.Filter
+  import TestHelpers
 
   import DgraphEx
-  import TestHelpers
 
   test "render filter" do
     assert filter(eq(:beef, "moo")) |> render == "@filter(eq(beef, \"moo\"))"

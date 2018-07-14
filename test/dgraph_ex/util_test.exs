@@ -1,5 +1,5 @@
 defmodule DgraphEx.UtilTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest DgraphEx.Util
 
   alias DgraphEx.Util
@@ -21,7 +21,7 @@ defmodule DgraphEx.UtilTest do
   end
 
   test "as_rendered/1 date" do
-    {:ok, written_on} = Date.new(2017, 8, 5) 
+    {:ok, written_on} = Date.new(2017, 8, 5)
     assert Util.as_rendered(written_on) == "2017-08-05T00:00:00.0+00:00"
   end
 
@@ -52,7 +52,7 @@ defmodule DgraphEx.UtilTest do
   end
 
   test "as_literal/2 date" do
-    {:ok, written_on} = Date.new(2017, 8, 5) 
+    {:ok, written_on} = Date.new(2017, 8, 5)
     assert Util.as_literal(written_on, :date) == {:ok, "2017-08-05T00:00:00.0+00:00"}
   end
 

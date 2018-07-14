@@ -1,9 +1,8 @@
 defmodule DgraphEx.VertexTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest DgraphEx.Vertex
 
   alias DgraphEx.Vertex
-
   alias DgraphEx.ModelPerson,  as: Person
   alias DgraphEx.ModelCompany, as: Company
 
@@ -22,12 +21,12 @@ defmodule DgraphEx.VertexTest do
     fields = Vertex.populate_fields(:company, company)
     person_uid = %DgraphEx.Expr.Uid{type: :literal, value: "5678"}
     company_uid = %DgraphEx.Expr.Uid{type: :literal, value: "1234"}
-    triples = 
+    triples =
       fields
       |> Enum.map(fn f -> {f.subject, f.predicate, f.object} end)
     assert {:company,   :_uid_,   company_uid}  in triples
     assert {:company,   :name,    "Flim"}       in triples
-    assert {:company,   :owner,   person_uid}   in triples 
+    assert {:company,   :owner,   person_uid}   in triples
     assert {person_uid, :_uid_,   person_uid}   in triples
     assert {person_uid, :age,     34}           in triples
     assert {person_uid, :name,    "Flinn"}      in triples
@@ -58,7 +57,7 @@ defmodule DgraphEx.VertexTest do
     assert joined._uid_ == "456"
     assert joined.owner._uid_ == "123"
   end
-  
+
   test "extract_uids finds the uids in a simple model" do
     assert Vertex.extract_uids(%Person{_uid_: "132"}) == %{"person" => "132"}
   end

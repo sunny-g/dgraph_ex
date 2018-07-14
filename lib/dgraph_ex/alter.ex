@@ -20,7 +20,7 @@ defmodule DgraphEx.Alter do
 
   ## Examples:
 
-      iex> DgraphEx.Alter.new
+      iex> DgraphEx.Alter.new()
       %DgraphEx.Alter{fields: []}
 
       iex> DgraphEx.Alter.new([%DgraphEx.Field{predicate: :name}])

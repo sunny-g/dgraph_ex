@@ -1,6 +1,5 @@
-defmodule DgraphEx.UidTest do
-
-  use ExUnit.Case
+defmodule DgraphEx.Expr.UidTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Uid
 
   import DgraphEx

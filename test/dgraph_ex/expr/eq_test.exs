@@ -1,12 +1,9 @@
-defmodule DgraphEx.EqTest do
-
-  use ExUnit.Case
+defmodule DgraphEx.Expr.EqTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Eq
 
   import DgraphEx
-
   alias DgraphEx.Expr
-
 
   test "render eq with predicate, literal, and type" do
     assert eq(:beef, "cow bull moo", :string) |> Expr.Eq.render == "eq(beef, \"cow bull moo\")"
@@ -27,5 +24,4 @@ defmodule DgraphEx.EqTest do
   test "render eq with predicate and list" do
     assert eq(:fav_color, ["blue", "green", "brown"]) |> Expr.Eq.render == ~s{eq(fav_color, ["blue","green","brown"])}
   end
- 
 end

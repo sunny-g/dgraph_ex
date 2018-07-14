@@ -1,5 +1,4 @@
 defmodule DgraphEx.TypesTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest DgraphEx.Types
-
 end

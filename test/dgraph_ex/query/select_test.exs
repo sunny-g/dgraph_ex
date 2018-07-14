@@ -1,12 +1,11 @@
-defmodule DgraphEx.SelectTest do
-  use ExUnit.Case
+defmodule DgraphEx.Query.SelectTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Query.Select
+  import TestHelpers
 
+  import DgraphEx
   alias DgraphEx.ModelPerson, as: Person
   alias DgraphEx.ModelCompany, as: Company
-
-  import TestHelpers
-  import DgraphEx
 
   test "select can destructure a module with a struct into a block for selection" do
     result =

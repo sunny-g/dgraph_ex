@@ -1,10 +1,9 @@
-defmodule DgraphEx.WithinTest do
-
-  use ExUnit.Case
+defmodule DgraphEx.Expr.WithinTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Within
+  import TestHelpers
 
   import DgraphEx
-  import TestHelpers
 
   test "within renders correctly" do
     geo_json = [[
@@ -20,5 +19,4 @@ defmodule DgraphEx.WithinTest do
       within(loc, #{geo_string})
     """)
   end
-
 end

@@ -1,14 +1,11 @@
 defmodule DgraphExTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest DgraphEx
-  import DgraphEx
   import TestHelpers
 
+  import DgraphEx
   alias DgraphEx.Query
-  alias Query.{
-    Groupby,
-  }
-
+  alias Query.{Groupby}
   alias DgraphEx.ModelPerson,   as: Person
   alias DgraphEx.ModelCompany,  as: Company
 
@@ -165,7 +162,7 @@ defmodule DgraphExTest do
   #     total_actors : val(total)
   #   }
   # }
- 
+
   test "compilcated query 2" do
     # booyah
     result = {
@@ -183,7 +180,7 @@ defmodule DgraphExTest do
     assert render(result) ==  "{ ID as var(func: allofterms(name@en, \"Steven\")) { director.film { num_actors as count(starring) } total as sum(val(num_actors)) } dirs(func: uid(ID)) @filter(gt(val(total), 100)) { name@en total_actors: val(total) } }"
   end
 
-   
+
   test "compilcated query 3" do
     result = {
       func(:person, anyofterms(:name, "Jason")), {

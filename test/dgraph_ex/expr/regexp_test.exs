@@ -1,5 +1,5 @@
-defmodule DgraphEx.RegexpTest do
-  use ExUnit.Case
+defmodule DgraphEx.Expr.RegexpTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Expr.Regexp
 
   import DgraphEx
@@ -15,6 +15,4 @@ defmodule DgraphEx.RegexpTest do
   test "regex can render with an elixir Regex with options" do
     assert render(regexp(:name, ~r/Jason/im)) ==  "regexp(name, /Jason/im)"
   end
-
-
 end

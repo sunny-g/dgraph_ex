@@ -1,10 +1,9 @@
 defmodule DgraphEx.SetTest do
-  use ExUnit.Case
-  # doctest DgraphEx.Mutation
-
-  import DgraphEx
+  use ExUnit.Case, async: true
+  doctest DgraphEx.Set
   import TestHelpers
 
+  import DgraphEx
   alias DgraphEx.ModelPerson, as: Person
   alias DgraphEx.ModelCompany, as: Company
 

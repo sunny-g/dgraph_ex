@@ -1,10 +1,9 @@
 defmodule DgraphEx.DeleteTest do
-  use ExUnit.Case
-  # doctest DgraphEx.Mutation
-
-  import DgraphEx
+  use ExUnit.Case, async: true
+  doctest DgraphEx.Delete
   import TestHelpers
 
+  import DgraphEx
   alias DgraphEx.ModelPerson, as: Person
   alias DgraphEx.ModelCompany, as: Company
 

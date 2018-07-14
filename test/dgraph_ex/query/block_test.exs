@@ -1,8 +1,9 @@
-defmodule DgraphEx.BlockTest do
-  use ExUnit.Case
+defmodule DgraphEx.Query.BlockTest do
+  use ExUnit.Case, async: true
   doctest DgraphEx.Query.Block
-  import DgraphEx
   import TestHelpers
+
+  import DgraphEx
 
   test "func function renders" do
     assert render(func(:person, eq(:name, "bleep"))) == clean_format("""

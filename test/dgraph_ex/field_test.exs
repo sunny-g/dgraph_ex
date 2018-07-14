@@ -1,14 +1,9 @@
 defmodule DgraphEx.FieldTest do
-  use ExUnit.Case
-
+  use ExUnit.Case, async: true
   doctest DgraphEx.Field
 
   alias DgraphEx.Field
   alias DgraphEx.Expr.Uid
-
-
-  # import DgraphEx
-  # import TestHelpers
 
   test "a field as_setter can render `uid pred uid .` correctly " do
     my_field = %Field{
@@ -64,7 +59,7 @@ defmodule DgraphEx.FieldTest do
   end
 
   test "a field can be of type password and be put_objected and renders correctly" do
-    the_field = 
+    the_field =
       %Field{
         subject:    %Uid{value: "1234", type: :literal},
         type:       :password,
@@ -73,7 +68,7 @@ defmodule DgraphEx.FieldTest do
       |> Field.put_object("12345")
     assert the_field.object == "12345"
     assert Field.as_setter(the_field) == "<1234> <user_pw> \"12345\"^^<pwd:password> ."
-    
+
   end
 
 end

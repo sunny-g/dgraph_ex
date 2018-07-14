@@ -1,12 +1,10 @@
 defmodule DgraphEx.ChangesetTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest DgraphEx.Changeset
 
   alias DgraphEx.Changeset
-
   alias DgraphEx.ModelPerson, as: Person
   alias DgraphEx.ModelCompany, as: Company
-
 
   test "a changeset defaults to invalid" do
     assert Changeset.is_valid?(%Changeset{}) == false
@@ -65,7 +63,7 @@ defmodule DgraphEx.ChangesetTest do
       %Person{}
       |> Changeset.cast(%{name: "Bleep"}, [:name, :age])
       |> Changeset.validate_required([:name, :age])
-  
+
     assert cs.changes == %{name: "Bleep"}
     assert cs.errors == [{:age, :cannot_be_nil}]
   end
@@ -126,7 +124,7 @@ defmodule DgraphEx.ChangesetTest do
       |> Changeset.cast(%{name: :nope, age: :nope}, [:name, :age])
       |> Changeset.validate_type([:name, age: [:int, :float]])
       |> Changeset.uncast()
-    
+
     assert result ==  {:error, %DgraphEx.Changeset{
       changes: %{age: :nope, name: :nope},
       errors: [age: :invalid_type, name: :invalid_string],
@@ -164,5 +162,4 @@ defmodule DgraphEx.ChangesetTest do
       |> Changeset.validate_model(:works_at, Company, :changeset)
     assert changeset.errors == []
   end
-
 end
