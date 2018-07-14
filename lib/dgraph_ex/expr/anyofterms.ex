@@ -1,5 +1,4 @@
 defmodule DgraphEx.Expr.Anyofterms do
-  alias DgraphEx.Expr.Anyofterms
   alias DgraphEx.Util
 
   defstruct [
@@ -10,19 +9,19 @@ defmodule DgraphEx.Expr.Anyofterms do
   defmacro __using__(_) do
     quote do
       def anyofterms(label, value) when is_atom(label) and is_binary(value) do
-        DgraphEx.Expr.Anyofterms.new(label, value)
+        unquote(__MODULE__).new(label, value)
       end
     end
   end
 
   def new(label, value) when is_atom(label) and is_binary(value) do
-    %DgraphEx.Expr.Anyofterms{
+    %__MODULE__{
       label:  label,
       value:  value,
     }
   end
 
-  def render(%Anyofterms{label: label, value: value})
+  def render(%__MODULE__{label: label, value: value})
       when is_atom(label) and is_binary(value) do
     {:ok, literal_value} = Util.as_literal(value, :string)
     "anyofterms(" <> Util.as_rendered(label) <> ", " <> literal_value <> ")"

@@ -14,8 +14,6 @@ defmodule DgraphEx.Expr.UidIn do
   ```
   """
 
-  alias DgraphEx.Expr.UidIn
-
   defstruct [
     predicate: nil,
     uid:       nil,
@@ -23,21 +21,20 @@ defmodule DgraphEx.Expr.UidIn do
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.Expr.UidIn
       def uid_in(predicate, uid) when is_atom(predicate) and is_binary(uid) do
-        UidIn.new(predicate, uid)
+        unquote(__MODULE__).new(predicate, uid)
       end
     end
   end
 
   def new(predicate, uid) when is_atom(predicate) and is_binary(uid) do
-    %UidIn{
+    %__MODULE__{
       predicate: predicate,
       uid: uid,
     }
   end
 
-  def render(%UidIn{predicate: predicate, uid: uid})
+  def render(%__MODULE__{predicate: predicate, uid: uid})
       when is_atom(predicate) and is_binary(uid) do
     "uid_in(#{predicate}, #{uid})"
   end

@@ -1,20 +1,17 @@
 defmodule DgraphEx.Expr.Expand do
-  alias DgraphEx.Expr.Expand
-
   defstruct [
     label: nil
   ]
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.Expr.Expand
-      def expand(label) when is_atom(label) do
-        Expand.new(label)
-      end
+      def expand(label) when is_atom(label), do: unquote(__MODULE__).new(label)
     end
   end
 
-  def new(label) when is_atom(label), do: %Expand{label: label}
+  def new(label) when is_atom(label), do: %__MODULE__{label: label}
 
-  def render(%Expand{label: label}) when is_atom(label), do: "expand(#{label})"
+  def render(%__MODULE__{label: label}) when is_atom(label) do
+    "expand(#{label})"
+  end
 end

@@ -1,26 +1,19 @@
 defmodule DgraphEx.Expr.Agg do
+  alias DgraphEx.Expr.Val
 
   defmacro define_funcs(module, name) do
     quote do
-      def unquote(name)(%DgraphEx.Expr.Val{} = val) do
-        %unquote(module){
-          val: val,
-        }
-      end
+      def unquote(name)(%Val{} = val), do: %unquote(module){val: val}
     end
   end
 
   defmacro __using__(name) do
     quote do
-      alias DgraphEx.Expr.{Val}
-      alias DgraphEx.Util
-
       defstruct [
         val: nil
       ]
 
       @doc """
-
       Aggregation
 
       Syntax Example: AG(val(varName))

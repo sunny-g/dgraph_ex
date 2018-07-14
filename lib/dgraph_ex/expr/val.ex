@@ -1,5 +1,4 @@
 defmodule DgraphEx.Expr.Val do
-  alias DgraphEx.Expr.Val
   alias DgraphEx.Util
 
   defstruct [
@@ -8,13 +7,13 @@ defmodule DgraphEx.Expr.Val do
 
   defmacro __using__(_) do
     quote do
-      def val(label) do
-        DgraphEx.Expr.Val.new(label)
-      end
+      def val(label), do: unquote(__MODULE__).new(label)
     end
   end
 
-  def new(label) when is_atom(label), do: %Val{label: label}
+  def new(label) when is_atom(label), do: %__MODULE__{label: label}
 
-  def render(%Val{label: label}), do: "val("<>(label |> Util.as_rendered)<>")"
+  def render(%__MODULE__{label: label}) do
+    "val(" <> Util.as_rendered(label) <> ")"
+  end
 end

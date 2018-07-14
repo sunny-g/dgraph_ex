@@ -1,23 +1,18 @@
 defmodule DgraphEx.Expr.Math do
-  alias DgraphEx.Expr.Math
-
   defstruct [
     expr: nil
   ]
 
   defmacro math(block) do
-    expr =
-      block
+    expr = block
       |> Macro.to_string
       |> String.replace(":", "")
     quote do
-      %DgraphEx.Expr.Math{
-        expr: unquote(expr)
-      }
+      %unquote(__MODULE__){expr: unquote(expr)}
     end
   end
 
-  def new(expr) when is_binary(expr), do: %Math{expr: expr}
+  def new(expr) when is_binary(expr), do: %__MODULE__{expr: expr}
 
-  def render(%Math{expr: expr}), do: "math(#{expr})"
+  def render(%__MODULE__{expr: expr}), do: "math(#{expr})"
 end

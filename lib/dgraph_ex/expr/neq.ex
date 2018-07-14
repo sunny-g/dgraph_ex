@@ -1,9 +1,11 @@
 defmodule DgraphEx.Expr.Neq do
+  alias DgraphEx.Expr.{Val, Count}
+  alias DgraphEx.Util
 
   defmacro define_funcs(module, name) do
     quote do
       def unquote(name)(label, value) do
-        unquote(name)(label, value, DgraphEx.Util.infer_type(value))
+        unquote(name)(label, value, Util.infer_type(value))
       end
       def unquote(name)(label, value, type) when is_atom(label) or is_map(label) do
         %unquote(module){
@@ -17,9 +19,6 @@ defmodule DgraphEx.Expr.Neq do
 
   defmacro __using__(name) do
     quote do
-      alias DgraphEx.Expr.{Val, Count}
-      alias DgraphEx.Util
-
       defstruct [
         label: nil,
         value: nil,
@@ -35,13 +34,15 @@ defmodule DgraphEx.Expr.Neq do
 
       """
 
-      def render(%__MODULE__{label: %{__struct__: module} = model, value: value, type: type}) when module in [Val, Count] do
+      def render(%__MODULE__{label: %{__struct__: module} = model, value: value, type: type})
+          when module in [Val, Count] do
         {:ok, literal_value} = Util.as_literal(value, type)
         model
         |> module.render
         |> do_render(literal_value)
       end
-      def render(%__MODULE__{label: label, value: value, type: type}) when is_atom(label) do
+      def render(%__MODULE__{label: label, value: value, type: type})
+          when is_atom(label) do
         {:ok, literal_value} = Util.as_literal(value, type)
         label
         |> Util.as_rendered

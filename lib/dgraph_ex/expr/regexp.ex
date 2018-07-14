@@ -1,5 +1,4 @@
 defmodule DgraphEx.Expr.Regexp do
-  alias DgraphEx.Expr.Regexp
   alias DgraphEx.Util
 
   defstruct [
@@ -9,9 +8,7 @@ defmodule DgraphEx.Expr.Regexp do
 
   defmacro __using__(_) do
     quote do
-      def regexp(label, regex) do
-        DgraphEx.Expr.Regexp.new(label, regex)
-      end
+      def regexp(label, regex), do: unquote(__MODULE__).new(label, regex)
     end
   end
 
@@ -21,13 +18,13 @@ defmodule DgraphEx.Expr.Regexp do
 
   def new(label, regex) when is_atom(label) do
     if Regex.regex?(regex) do
-      %Regexp{label: label, regex: regex}
+      %__MODULE__{label: label, regex: regex}
     else
       raise %RuntimeError{message: "Invalid Regex. Got: #{inspect regex}"}
     end
   end
 
-  def render(%Regexp{label: label, regex: regex}) do
+  def render(%__MODULE__{label: label, regex: regex}) do
     "regexp(" <> Util.as_rendered(label) <> ", " <> render_regex(regex) <> ")"
   end
 

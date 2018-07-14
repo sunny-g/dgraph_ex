@@ -1,19 +1,15 @@
 defmodule DgraphEx.Expr.Has do
-  alias DgraphEx.Expr.Has
-
   defstruct [
     value: nil
   ]
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.Expr.Has
-
-      def has(value), do: Has.new(value)
+      def has(value), do: unquote(__MODULE__).new(value)
     end
   end
 
-  def new(value) when is_atom(value), do: %Has{value: value}
+  def new(value) when is_atom(value), do: %__MODULE__{value: value}
 
-  def render(%Has{value: value}), do: "has("<>to_string(value)<>")"
+  def render(%__MODULE__{value: value}), do: "has(" <> to_string(value) <> ")"
 end

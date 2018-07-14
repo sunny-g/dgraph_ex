@@ -1,6 +1,4 @@
 defmodule DgraphEx.Expr.Count do
-  alias DgraphEx.Expr.Count
-
   defstruct [
     value: nil,
     extras: [],
@@ -8,35 +6,24 @@ defmodule DgraphEx.Expr.Count do
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.Expr.Count
-      def count(value) do
-        Count.new(value)
-      end
-      def count(value, extras) do
-        Count.new(value, extras)
-      end
+      def count(value), do: unquote(__MODULE__).new(value)
+      def count(value, extras), do: unquote(__MODULE__).new(value, extras)
     end
   end
 
-  def new(value) when is_atom(value) do
-    %Count{value: value}
-  end
-  def new(value, %{__struct__: _} = model) do
-    new(value, [model])
-  end
+  def new(value) when is_atom(value), do: %__MODULE__{value: value}
+  def new(value, %{__struct__: _} = model), do: new(value, [model])
   def new(value, extras) when is_list(extras) when is_atom(value) do
-    %Count{value: value, extras: extras}
+    %__MODULE__{value: value, extras: extras}
   end
 
-  def render(%Count{value: v, extras: []}), do: "count(#{v})"
-  def render(%Count{value: v, extras: extras}) when is_list(extras) do
+  def render(%__MODULE__{value: v, extras: []}), do: "count(#{v})"
+  def render(%__MODULE__{value: v, extras: extras}) when is_list(extras) do
     "count(#{v} " <> render_extras(extras) <> ")"
   end
   defp render_extras(extras) do
     extras
-    |> Enum.map(fn %{__struct__: module} = model ->
-        module.render(model)
-      end)
+    |> Enum.map(fn %{__struct__: module} = model -> module.render(model) end)
     |> Enum.join(" ")
   end
 end

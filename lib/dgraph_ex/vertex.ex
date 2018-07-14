@@ -148,9 +148,9 @@ defmodule DgraphEx.Vertex do
     |> Map.from_struct
     |> Enum.reduce([], fn
         ({:_uid_, %Uid{value: uid}}, acc) when is_binary(uid) ->
-          [ {subject, uid} | acc ]
+          [{subject, uid} | acc]
         ({:_uid_, uid}, acc) when is_binary(uid) ->
-          [ {subject, uid} | acc ]
+          [{subject, uid} | acc]
         ({key, %{__struct__: _} = other_model}, acc) ->
           do_extract_uids(other_model, key) ++ acc
         (_, acc) ->
@@ -224,6 +224,7 @@ defmodule DgraphEx.Vertex do
   def populate_model(%{__struct__: module} = model, %{} = params) do
     do_populate_model(module, model |> Map.from_struct, params)
   end
+
   defp do_populate_model(module, model_data, params) do
     model_data
     |> Enum.map(fn
