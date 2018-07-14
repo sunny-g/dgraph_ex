@@ -1,35 +1,23 @@
 defmodule DgraphEx do
-  alias DgraphEx.{
-    Query,
-    # Mutation,
-    Util,
-  }
+  alias DgraphEx.{Alter, Delete, Expr, Field, Set, Query, Util, Vertex}
 
-  require DgraphEx.Vertex
-  DgraphEx.Vertex.query_model()
-  use DgraphEx.Field
-  use DgraphEx.Expr
-  # use DgraphEx.Schema
+  require Vertex
+  require Expr.Math
+
+  Vertex.query_model()
+  use Expr
+  use Field
+  # use Schema
 
   # use Mutation
-  use DgraphEx.Set
-  use DgraphEx.Delete
-  use DgraphEx.Alter
+  use Alter
+  use Delete
+  use Set
 
   use Query
-  use Query.Var
-  use Query.As
-  use Query.Select
-  use Query.Filter
-  use Query.Block
-  use Query.Directive
-  use Query.Groupby
 
-  require DgraphEx.Expr.Math
   defmacro math(block) do
-    quote do
-      DgraphEx.Expr.Math.math(unquote(block))
-    end
+    quote do: Expr.Math.math(unquote(block))
   end
 
   def into({:error, _} = err, _, _), do: err
@@ -41,6 +29,7 @@ defmodule DgraphEx do
     |> do_into(module, key)
   end
 
+  defp do_into(%{} = item, %{} = model), do: Vertex.populate_model(model, item)
   defp do_into({:error, _} = err, _, _), do: err
   defp do_into(items, module, key) when is_atom(module) do
     do_into(items, module.__struct__, key)
@@ -49,7 +38,4 @@ defmodule DgraphEx do
     %{key => Enum.map(items, fn item -> do_into(item, model) end)}
   end
   defp do_into(%{} = item, %{} = model, key), do: %{key => do_into(item, model)}
-  defp do_into(%{} = item, %{} = model), do: Vertex.populate_model(model, item)
-
-  def thing, do: :ok
 end

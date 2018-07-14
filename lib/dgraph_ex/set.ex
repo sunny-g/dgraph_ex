@@ -7,18 +7,6 @@ defmodule DgraphEx.Set do
 
   defmacro __using__(_) do
     quote do
-      defp raise_vertex_only_error do
-        raise %ArgumentError{
-          message: "Dgraph.set structs must be Vertex models only"
-        }
-      end
-
-      defp check_model(model) do
-        if !Vertex.is_model?(model) do
-          raise_vertex_only_error()
-        end
-      end
-
       def set(), do: %Set{}
       def set(items) when is_list(items), do: Kwargs.parse(items)
       def set(%module{} = model) do
@@ -30,19 +18,31 @@ defmodule DgraphEx.Set do
         fields = Vertex.populate_fields(subject, module, model)
         %Set{fields: fields}
       end
+
+      defp raise_vertex_only_error do
+        raise %ArgumentError{
+          message: "Dgraph.set structs must be Vertex models only"
+        }
+      end
+
+      defp check_model(model) do
+        if !Vertex.is_model?(model) do
+          raise_vertex_only_error()
+        end
+      end
     end
   end
 
-  def put_field(%Set{fields: prev_fields} = set, %Field{} = field) do
+  def put_field(%__MODULE__{fields: prev_fields} = set, %Field{} = field) do
     %{set | fields: [field | prev_fields]}
   end
 
-  def merge(%Set{fields: fields1} = mset1, %Set{fields: fields2}) do
+  def merge(%__MODULE__{fields: fields1} = mset1, %__MODULE__{fields: fields2}) do
     %{mset1 | fields: [fields1 ++ fields2]}
   end
 
-  def render(%Set{fields: []}), do: ""
-  def render(%Set{fields: fields}) when length(fields) > 0 do
+  def render(%__MODULE__{fields: []}), do: ""
+  def render(%__MODULE__{fields: fields}) when length(fields) > 0 do
     lines = render_fields(fields, 4)
     "{\n  set {\n" <> lines <> "\n  }\n}"
   end

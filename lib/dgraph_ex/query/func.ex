@@ -1,69 +1,62 @@
-# defmodule DgraphEx.Query.Func do
-  # alias DgraphEx.{Query, Expr}
-  # alias Query.{Func, Block}
-  # alias Expr.{Uid}
+defmodule DgraphEx.Query.Func do
+  alias DgraphEx.{Expr, Query}
+  alias Expr.Uid
+  alias Query.{Block}
 
-  # defstruct [
-  #   name:   nil,
-  #   expr:   nil,
-  #   block:  {},
-  # ]
+  defstruct [
+    name:   nil,
+    expr:   nil,
+    block:  {},
+  ]
 
-  # defmacro __using__(_) do
-  #   quote do
-  #     def func(one, two, three \\ nil, four \\ nil) do
-  #       alias DgraphEx.Query
-  #       case {one, two, three, four} do
-  #         {%Query{}, _, %{__struct__: _}, block} when is_nil(block) or is_tuple(block) ->
-  #           Query.Func.func_4(one, two, three, four)
-  #         {_, _, _, nil} ->
-  #           Query.Func.func_3(one, two, three)
-  #       end
-  #     end
-  #   end
-  # end
+  defmacro __using__(_) do
+    quote do
+      def func(one, two, three \\ nil, four \\ nil) do
+        case {one, two, three, four} do
+          {%Query{}, _, %{__struct__: _}, block}
+              when is_nil(block) or is_tuple(block) ->
+            __MODULE__.func_4(one, two, three, four)
+          {_, _, _, nil} ->
+            __MODULE__.func_3(one, two, three)
+        end
+      end
+    end
+  end
 
-  # def func_4(q, name, expr, nil) do
-  #   func_4(q, name, expr, {})
-  # end
-  # def func_4(%Query{} = q, name, %{__struct__: _} = expr, block) when is_tuple(block) do
-  #   Query.put_sequence(q ,%Query.Func{
-  #     name:   name,
-  #     expr:   Query.Func.prepare_expr(expr),
-  #     block:  block,
-  #   })
-  # end
-  # def func_3(name, expr, nil) do
-  #   Block.new(name, [func: expr])
-  # end
-  # def func_3(name, %{__struct__: _} = expr, block) when is_tuple(block) do
-  #   %Query.Func{
-  #     name:   name,
-  #     expr:   prepare_expr(expr),
-  #     block:  block,
-  #   }
-  # end
+  def func_3(name, expr, nil), do: Block.new(name, [func: expr])
+  def func_3(name, %{__struct__: _} = expr, block) when is_tuple(block) do
+    %__MODULE__{
+      name:   name,
+      expr:   prepare_expr(expr),
+      block:  block,
+    }
+  end
 
-  # def render(%Func{} = f) do
-  #   "#{f.name}(func: #{render_expr(f)}) " <> render_block(f)
-  # end
+  def func_4(q, name, expr, nil), do: func_4(q, name, expr, {})
+  def func_4(%Query{} = q, name, %{__struct__: _} = expr, block)
+      when is_tuple(block) do
+    Query.put_sequence(q ,%__MODULE__{
+      name:   name,
+      expr:   __MODULE__.prepare_expr(expr),
+      block:  block,
+    })
+  end
 
-  # defp render_block(%Func{block: {}}) do
-  #   ""
-  # end
-  # defp render_block(%Func{block: block}) do
-  #   Block.render(block)
-  # end
+  def render(%__MODULE__{} = f) do
+    "#{f.name}(func: #{render_expr(f)}) " <> render_block(f)
+  end
 
-  # defp render_expr(%Func{expr: %{__struct__: module} = model}) do
-  #   module.render(model)
-  # end
+  defp render_block(%__MODULE__{block: {}}), do: ""
+  defp render_block(%__MODULE__{block: block}), do: Block.render(block)
 
-  # def prepare_expr(expr) do
-  #   case expr do
-  #     %Uid{} -> expr |> Uid.as_expression
-  #     _ -> expr
-  #   end
-  # end
+  defp render_expr(%__MODULE__{expr: %{__struct__: module} = model}) do
+    module.render(model)
+  end
 
-# end
+  def prepare_expr(expr) do
+    case expr do
+      %Uid{} -> Uid.as_expression(expr)
+      _ -> expr
+    end
+  end
+end

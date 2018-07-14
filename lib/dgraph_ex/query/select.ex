@@ -1,7 +1,6 @@
 defmodule DgraphEx.Query.Select do
-  alias DgraphEx.Query
-  alias DgraphEx.Query.{Select, As}
-  alias DgraphEx.{Vertex, Util}
+  alias DgraphEx.{Query, Util, Vertex}
+  alias DgraphEx.Query.As
 
   defstruct [
     fields: []
@@ -9,11 +8,12 @@ defmodule DgraphEx.Query.Select do
 
   defmacro __using__(_) do
     quote do
-      def select(block) when is_tuple(block)
-                        when is_list(block)
-                        when is_map(block)
-                        when is_atom(block) do
-        DgraphEx.Query.Select.new(block)
+      def select(block)
+          when is_tuple(block)
+          when is_list(block)
+          when is_map(block)
+          when is_atom(block) do
+        unquote(__MODULE__).new(block)
       end
       def select(%Query{} = q, block) do
         Query.put_sequence(q, select(block))
@@ -21,13 +21,11 @@ defmodule DgraphEx.Query.Select do
     end
   end
 
-
   @doc """
-  Example:
+  ## Examples
 
-    iex> DgraphEx.Query.Select.new({:me, :he, you: :too, they: nil})
-    %DgraphEx.Query.Select{fields: [{:they, nil}, {:you, :too}, {:he, nil}, {:me, nil}]}
-
+      iex> DgraphEx.Query.Select.new({:me, :he, you: :too, they: nil})
+      %DgraphEx.Query.Select{fields: [{:they, nil}, {:you, :too}, {:he, nil}, {:me, nil}]}
   """
   def new(block) when is_tuple(block) do
     block
@@ -46,71 +44,54 @@ defmodule DgraphEx.Query.Select do
       new([{atom, nil}])
     end
   end
-  def new(fields) when is_list(fields) do
-    %Select{}
-    |> put(fields)
-  end
+  def new(fields) when is_list(fields), do: put(%__MODULE__{}, fields)
 
   @doc """
-  Example
+  ## Examples
 
-    iex> DgraphEx.Query.Select.put(%DgraphEx.Query.Select{}, :me)
-    %DgraphEx.Query.Select{fields: [{:me, nil}]}
+      iex> DgraphEx.Query.Select.put(%DgraphEx.Query.Select{}, :me)
+      %DgraphEx.Query.Select{fields: [{:me, nil}]}
 
-    iex> DgraphEx.Query.Select.put(%DgraphEx.Query.Select{}, [:me, :he, you: :too, they: nil])
-    %DgraphEx.Query.Select{fields: [{:they, nil}, {:you, :too}, {:he, nil}, {:me, nil}]}
-
+      iex> DgraphEx.Query.Select.put(%DgraphEx.Query.Select{}, [:me, :he, you: :too, they: nil])
+      %DgraphEx.Query.Select{fields: [{:they, nil}, {:you, :too}, {:he, nil}, {:me, nil}]}
   """
-  def put(%Select{} = s, []) do
-    s
-  end
-  def put(%Select{} = s, [ item | rest ]) do
+  def put(%__MODULE__{} = s, []), do: s
+  def put(%__MODULE__{} = s, [ item | rest ]) do
     s
     |> put(item)
     |> put(rest)
   end
-  def put(%Select{} = s, item) when is_atom(item) do
-    put(s, {item, nil})
+  def put(%__MODULE__{} = s, item) when is_atom(item), do: put(s, {item, nil})
+  def put(%__MODULE__{fields: prev} = s, {key, value}) when is_atom(key) do
+    %{s | fields: [{key, value} | prev]}
   end
-  def put(%Select{fields: prev} = s, {key, value}) when is_atom(key) do
-    %{ s | fields: [ {key, value} | prev ]}
+  def put(%__MODULE__{fields: prev} = s, %As{} = as) do
+    %{s | fields: [as | prev]}
   end
-  def put(%Select{fields: prev} = s, %As{} = as) do
-    %{ s | fields: [ as | prev ]}
-  end
-  def put(%Select{} = s, key, value) when is_atom(key) do
-    put(s, {key, value})
-  end
+  def put(%__MODULE__{} = s, key, value) when is_atom(key), do: put(s, {key, value})
 
-
-  def render(%Select{fields: fields}) do
-    ["{" | fields |> Enum.reverse |> do_render ] ++ [ "}" ] 
-    |> Enum.join(" ")
+  def render(%__MODULE__{fields: fields}) do
+    rendered_fields = fields |> Enum.reverse |> do_render
+    parts = ["{" |  rendered_fields] ++ [ "}" ]
+    Enum.join(parts, " ")
   end
 
   defp do_render(fields) when is_list(fields) do
-    fields
-    |> Enum.map(&do_render/1)
+    Enum.map(fields, &do_render/1)
   end
-  defp do_render({key, nil}) do
-    to_string(key)
-  end
+  defp do_render({key, nil}), do: to_string(key)
   defp do_render({key, value}) when is_atom(value) do
     do_render({key, to_string(value)})
   end
   defp do_render({key, value}) when is_binary(value) do
     to_string(key) <> ": " <> to_string(value)
   end
-  defp do_render({key, %Select{} = s}) do
-    to_string(key) <> " " <> render(s)
-  end
+  defp do_render({key, %__MODULE__{} = s}), do: to_string(key) <> " " <> render(s)
   defp do_render({key, %Query{} = q}) do
     to_string(key) <> " " <> Query.render(q)
   end
   defp do_render({key, %{__struct__: module} = model}) do
     do_render({key, module.render(model)})
   end
-  defp do_render(%As{} = as) do
-    As.render(as)
-  end
+  defp do_render(%As{} = as), do: As.render(as)
 end

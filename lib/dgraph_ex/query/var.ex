@@ -1,17 +1,11 @@
 defmodule DgraphEx.Query.Var do
   alias DgraphEx.Query
-  # alias Query.{Var, Func}
 
-  defstruct [
-  ]
+  defstruct []
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.Query
-      def var(%Query{} = q) do
-        Query.put_sequence(q, Query.Var)
-      end
+      def var(%Query{} = q), do: Query.put_sequence(q, __MODULE__)
     end
   end
-
 end

@@ -1,10 +1,13 @@
 defmodule DgraphEx.Query do
-  alias DgraphEx.{Query}
+  alias DgraphEx.{Kwargs, Query}
   alias Query.{
     As,
-    Var,
     Block,
+    Directive,
+    Filter,
     Groupby,
+    Select,
+    Var,
   }
 
   @bracketed [
@@ -19,7 +22,13 @@ defmodule DgraphEx.Query do
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.{Query, Kwargs}
+      use As
+      use Block
+      use Directive
+      use Filter
+      use Groupby
+      use Select
+      use Var
 
       def query, do: %Query{}
       def query(kwargs) when is_list(kwargs), do: Kwargs.parse(kwargs)
@@ -28,8 +37,8 @@ defmodule DgraphEx.Query do
     end
   end
 
-  def merge(%Query{sequence: seq1}, %Query{sequence: seq2}) do
-    %Query{sequence: seq2 ++ seq1}
+  def merge(%__MODULE__{sequence: seq1}, %__MODULE__{sequence: seq2}) do
+    %__MODULE__{sequence: seq2 ++ seq1}
   end
 
   def put_sequence(%__MODULE__{sequence: prev_sequence} = d, prefix)
@@ -37,12 +46,11 @@ defmodule DgraphEx.Query do
     %{d | sequence: prefix ++ prev_sequence}
   end
   def put_sequence(%__MODULE__{sequence: sequence} = d, item) do
-    %{d | sequence: [ item | sequence ]}
+    %{d | sequence: [item | sequence]}
   end
 
   def render(block) when is_tuple(block), do: Block.render(block)
-  def render(%module{} = model), do: module.render(model)
-  def render(%Query{sequence: backwards_sequence}) do
+  def render(%__MODULE__{sequence: backwards_sequence}) do
     case backwards_sequence |> Enum.reverse do
       [%Block{keywords: [{:func, _} | _]} | _] = sequence ->
         sequence
@@ -55,10 +63,9 @@ defmodule DgraphEx.Query do
       sequence when is_list(sequence) ->
         sequence
         |> render_sequence
-      %module{} = model ->
-        module.render(model)
     end
   end
+  def render(%module{} = model), do: module.render(model)
 
   defp render_sequence(sequence) do
     sequence

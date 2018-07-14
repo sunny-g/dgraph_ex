@@ -1,8 +1,7 @@
 defmodule DgraphEx.Expr do
+  alias DgraphEx.Expr
 
   defmacro __using__(_) do
-    alias DgraphEx.Expr
-
     quote do
       # indexes
       use Expr.Eq

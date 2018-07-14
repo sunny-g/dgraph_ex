@@ -11,7 +11,7 @@ defmodule DgraphEx.Alter do
     end
   end
 
-  def put_field(%Alter{fields: prev_fields} = alter, %Field{} = field) do
+  def put_field(%__MODULE__{fields: prev_fields} = alter, %Field{} = field) do
     %{alter | fields: [field | prev_fields]}
   end
 
@@ -26,7 +26,7 @@ defmodule DgraphEx.Alter do
       iex> DgraphEx.Alter.new([%DgraphEx.Field{predicate: :name}])
       %DgraphEx.Alter{fields: [%DgraphEx.Field{predicate: :name}]}
   """
-  def new(fields \\ []) when is_list(fields), do: %Alter{fields: fields}
+  def new(fields \\ []) when is_list(fields), do: %__MODULE__{fields: fields}
 
   @doc """
   Appends a Field struct to the fields (uh...) field of the alter struct.
@@ -36,7 +36,7 @@ defmodule DgraphEx.Alter do
       iex> DgraphEx.Alter.new() |> DgraphEx.Alter.append(%DgraphEx.Field{predicate: :name})
       %DgraphEx.Alter{fields: [%DgraphEx.Field{predicate: :name}]}
   """
-  def append(%Alter{} = model, %Field{} = field) do
+  def append(%__MODULE__{} = model, %Field{} = field) do
     %{model | fields: model.fields ++ [field]}
   end
 

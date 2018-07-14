@@ -1,6 +1,6 @@
 defmodule DgraphEx.Vertex do
-  alias DgraphEx.{Vertex, Field, Query, Util}
-  alias DgraphEx.Expr.Uid
+  alias DgraphEx.{Expr, Field, Query, Util, Vertex}
+  alias Expr.Uid
 
   defmacro __using__(_opts) do
     quote do
@@ -11,7 +11,6 @@ defmodule DgraphEx.Vertex do
 
   defmacro vertex(default_label, do: block) when is_atom(default_label) do
     quote do
-      alias DgraphEx.Field
       Module.register_attribute(__MODULE__, :vertex_fields, accumulate: true)
       unquote(block)
       @fields Enum.reverse(@vertex_fields) ++ [
@@ -28,7 +27,6 @@ defmodule DgraphEx.Vertex do
 
   defmacro query_model() do
     quote do
-      alias DgraphEx.{Query, Vertex}
       def model(%Query{} = q, subject, %{__struct__: _} = the_model) do
         subject
         |> Vertex.populate_fields(the_model)

@@ -1,5 +1,5 @@
 defmodule DgraphEx.Query.Groupby do
-  alias DgraphEx.Query.Groupby
+  alias DgraphEx.Query
 
   defstruct [
     predicate: nil
@@ -7,33 +7,14 @@ defmodule DgraphEx.Query.Groupby do
 
   defmacro __using__(_) do
     quote do
-      alias DgraphEx.Query
-      alias DgraphEx.Query.Groupby
-
-      def groupby(pred) when is_atom(pred) do
-        Groupby.new(pred)
-      end
+      def groupby(pred) when is_atom(pred), do: unquote(__MODULE__).new(pred)
       def groupby(%Query{} = q, pred) when is_atom(pred) do
-        Query.put_sequence(q, Groupby.new(pred))
+        Query.put_sequence(q, unquote(__MODULE__).new(pred))
       end
     end
   end
 
-  def new(pred) when is_atom(pred) do
-    %Groupby{
-      predicate: pred
-    }
-  end
+  def new(pred) when is_atom(pred), do: %__MODULE__{predicate: pred}
 
-  @doc """
-    Examples:
-
-    iex> %DgraphEx.Query.Groupby{predicate: :thing} |> DgraphEx.Query.Groupby.render
-    "@groupby(thing)"
-
-  """
-  def render(%Groupby{predicate: p}) when is_atom(p) do
-    "@groupby(#{p})"
-  end
-
+  def render(%__MODULE__{predicate: p}) when is_atom(p), do: "@groupby(#{p})"
 end
