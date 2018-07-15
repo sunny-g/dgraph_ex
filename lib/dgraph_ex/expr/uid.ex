@@ -57,10 +57,11 @@ defmodule DgraphEx.Expr.Uid do
   def render(%__MODULE__{value: value})
       when is_atom(value), do: render_expression([value])
   def render(%__MODULE__{value: value, type: :literal}) when is_binary(value) do
-    value
-    |> Util.as_literal(:uid)
-    |> elem(1)
+    {:ok, uid_literal} = Util.as_literal(value, :uid)
+    uid_literal
   end
+  def render(%__MODULE__{value: value, type: :literal})
+      when is_list(value), do: render_expression(value)
   def render(%__MODULE__{value: value, type: :naked})
       when is_binary(value), do: value
   def render(%__MODULE__{value: value, type: :expression})
