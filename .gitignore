@@ -1,3 +1,7 @@
+.elixir_ls/
+.vscode/
+dgraph_ex.code-workspace
+
 # The directory Mix will write compiled artifacts to.
 /_build
 
