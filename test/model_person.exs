@@ -5,15 +5,15 @@ defmodule DgraphEx.ModelPerson do
   alias DgraphEx.Changeset
 
   vertex :person do
-    field :name,      :string
-    field :age,       :int
-    field :works_at,  :uid, model: Company
+    field(:name, :string)
+    field(:age, :int)
+    field(:works_at, :uid, model: Company)
   end
 
   @allowed_fields [
     :name,
     :age,
-    :works_at,
+    :works_at
   ]
 
   def changeset(%Person{} = model, %{} = changes) do
@@ -21,8 +21,7 @@ defmodule DgraphEx.ModelPerson do
     |> Changeset.cast(changes, @allowed_fields)
     |> Changeset.validate_required([:name])
     |> Changeset.validate_type([:name, :age])
+
     # |> Changeset.validate_model(:works_at, Company, :changeset)
   end
-
-
 end

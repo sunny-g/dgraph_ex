@@ -1,18 +1,20 @@
 defmodule DgraphEx.Set do
+  @moduledoc false
+
   alias DgraphEx.{Field, Kwargs, Set, Vertex}
 
-  defstruct [
-    fields: []
-  ]
+  defstruct fields: []
 
   defmacro __using__(_) do
     quote do
       def set(), do: %Set{}
       def set(items) when is_list(items), do: Kwargs.parse(items)
+
       def set(%module{} = model) do
         check_model(model)
         set(Vertex.setter_subject(model), model)
       end
+
       def set(subject, %module{} = model) do
         check_model(model)
         fields = Vertex.populate_fields(subject, module, model)
@@ -42,6 +44,7 @@ defmodule DgraphEx.Set do
   end
 
   def render(%__MODULE__{fields: []}), do: ""
+
   def render(%__MODULE__{fields: fields}) when length(fields) > 0 do
     lines = render_fields(fields, 4)
     "{\n  set {\n" <> lines <> "\n  }\n}"
@@ -51,7 +54,7 @@ defmodule DgraphEx.Set do
     fields
     |> remove_uid
     |> Enum.map(&Field.as_setter/1)
-    |> List.flatten
+    |> List.flatten()
     |> Enum.map(fn item -> left_pad(item, indent, " ") end)
     |> Enum.join("\n")
   end
@@ -59,6 +62,7 @@ defmodule DgraphEx.Set do
   defp remove_uid(fields) when is_list(fields) do
     Enum.filter(fields, &remove_uid/1)
   end
+
   defp remove_uid(%{predicate: :_uid_}), do: false
   defp remove_uid(x), do: x
 

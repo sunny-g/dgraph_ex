@@ -3,82 +3,113 @@ defmodule DgraphEx.ExprTest do
   doctest DgraphEx.Expr
 
   import DgraphEx
-  alias DgraphEx.Expr
+
+  alias DgraphEx.Expr.{
+    # indices
+    Allofterms,
+    Anyofterms,
+    Alloftext,
+    Anyoftext,
+    Regexp,
+
+    # Neq indices
+    Ge,
+    Gt,
+    Le,
+    Lt,
+
+    # Aggs
+    Agg,
+    Avg,
+    Max,
+    Min,
+    Sum,
+
+    # simples
+    Val,
+    Count,
+    Uid,
+    Has,
+  }
 
   test "render count" do
-    assert count(:beef) |> Expr.Count.render == "count(beef)"
+    assert count(:beef) |> Count.render() == "count(beef)"
   end
 
   test "render uid as literal" do
-    assert uid("0x123") |> Expr.Uid.render == "<0x123>"
+    assert uid("0x123") |> Uid.render() == "<0x123>"
   end
 
   test "render uid as label" do
-    assert uid(:beef) |> Expr.Uid.render == "uid(beef)"
+    assert uid(:beef) |> Uid.render() == "uid(beef)"
   end
 
   test "render allofterms" do
-    assert allofterms(:beef, "cow bull moo") |> Expr.Allofterms.render == "allofterms(beef, \"cow bull moo\")"
+    assert allofterms(:beef, "cow bull moo") |> Allofterms.render() ==
+             "allofterms(beef, \"cow bull moo\")"
   end
 
   test "render val" do
-    assert val(:my_var) |> Expr.Val.render == "val(my_var)"
+    assert val(:my_var) |> Val.render() == "val(my_var)"
   end
 
   test "render regexp with Regex" do
-    assert regexp(:name, ~r/Jason/) |> Expr.Regexp.render == "regexp(name, /Jason/)"
+    assert regexp(:name, ~r/Jason/) |> Regexp.render() == "regexp(name, /Jason/)"
   end
 
   test "render regexp with string" do
-    assert regexp(:name, "\d{4}") |> Expr.Regexp.render == "regexp(name, /\d{4}/)"
+    assert regexp(:name, "\d{4}") |> Regexp.render() == "regexp(name, /\d{4}/)"
   end
 
   test "render anyofterms" do
-    assert anyofterms(:beef, "cow bull moo") |> Expr.Anyofterms.render == "anyofterms(beef, \"cow bull moo\")"
+    assert anyofterms(:beef, "cow bull moo") |> Anyofterms.render() ==
+             "anyofterms(beef, \"cow bull moo\")"
   end
 
   test "render anyoftext" do
-    assert anyoftext(:beef, "cow bull moo") |> Expr.Anyoftext.render == "anyoftext(beef, \"cow bull moo\")"
+    assert anyoftext(:beef, "cow bull moo") |> Anyoftext.render() ==
+             "anyoftext(beef, \"cow bull moo\")"
   end
 
   test "render alloftext" do
-    assert alloftext(:beef, "cow bull moo") |> Expr.Alloftext.render == "alloftext(beef, \"cow bull moo\")"
+    assert alloftext(:beef, "cow bull moo") |> Alloftext.render() ==
+             "alloftext(beef, \"cow bull moo\")"
   end
 
   test "render lt" do
-    assert lt(:age, 100) |> Expr.Lt.render == "lt(age, 100)"
+    assert lt(:age, 100) |> Lt.render() == "lt(age, 100)"
   end
 
   test "render le" do
-    assert le(:age, 100) |> Expr.Le.render == "le(age, 100)"
+    assert le(:age, 100) |> Le.render() == "le(age, 100)"
   end
 
   test "render gt" do
-    assert gt(:age, 100) |> Expr.Gt.render == "gt(age, 100)"
+    assert gt(:age, 100) |> Gt.render() == "gt(age, 100)"
   end
 
   test "render ge" do
-    assert ge(:age, 100) |> Expr.Ge.render == "ge(age, 100)"
+    assert ge(:age, 100) |> Ge.render() == "ge(age, 100)"
   end
 
   test "render sum" do
-    assert sum(val(:experience)) |> Expr.Sum.render == "sum(val(experience))"
+    assert sum(val(:experience)) |> Sum.render() == "sum(val(experience))"
   end
 
   test "render avg" do
-    assert avg(val(:experience)) |> Expr.Avg.render == "avg(val(experience))"
+    assert avg(val(:experience)) |> Avg.render() == "avg(val(experience))"
   end
 
   test "render min" do
-    assert min(val(:experience)) |> Expr.Min.render == "min(val(experience))"
+    assert min(val(:experience)) |> Min.render() == "min(val(experience))"
   end
 
   test "render max" do
-    assert max(val(:experience)) |> Expr.Max.render == "max(val(experience))"
+    assert max(val(:experience)) |> Max.render() == "max(val(experience))"
   end
 
   test "render has" do
-    assert has(:age) |> Expr.Has.render == "has(age)"
+    assert has(:age) |> Has.render() == "has(age)"
   end
 
   test "render expand" do

@@ -13,6 +13,6 @@ defmodule DgraphEx.Expr.RegexpTest do
   end
 
   test "regex can render with an elixir Regex with options" do
-    assert render(regexp(:name, ~r/Jason/im)) ==  "regexp(name, /Jason/im)"
+    assert render(regexp(:name, ~r/Jason/im)) == "regexp(name, /Jason/im)"
   end
 end

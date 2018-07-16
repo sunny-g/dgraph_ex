@@ -8,39 +8,41 @@ defmodule DgraphEx.SetTest do
   alias DgraphEx.ModelCompany, as: Company
 
   test "render set with a model" do
-    assert "{\n  set {\n    _:person <name> \"Bleeeeeeeeeeeigh\"^^<xs:string> .\n    _:person <age> \"21\"^^<xs:int> .\n  }\n}" == %Person{
-      age: 21,
-      name: "Bleeeeeeeeeeeigh"
-    }
-    |> set()
-    |> render()
+    assert "{\n  set {\n    _:person <name> \"Bleeeeeeeeeeeigh\"^^<xs:string> .\n    _:person <age> \"21\"^^<xs:int> .\n  }\n}" ==
+             %Person{
+               age: 21,
+               name: "Bleeeeeeeeeeeigh"
+             }
+             |> set()
+             |> render()
   end
 
   test "render mutation set" do
     assert "{\n  set {\n    _:person <name> \"Jason\"^^<xs:string> .\n  }\n}" ==
-    set()
-    |> field(:person, :name, "Jason", :string)
-    |> render
+             set()
+             |> field(:person, :name, "Jason", :string)
+             |> render
   end
 
   test "render mutation set can handle a nested model" do
     assert %Company{
-      name: "TurfBytes",
-      owner: %Person{
-        name: "Jason"
-      }
-    }
-    |> set
-    |> render
-    |> clean_format == clean_format("""
-      {
-        set {
-          _:company <name>  "TurfBytes"^^<xs:string> .
-          _:company <owner> _:owner .
-          _:owner   <name>  "Jason"^^<xs:string> .
-        }
-      }
-    """)
+             name: "TurfBytes",
+             owner: %Person{
+               name: "Jason"
+             }
+           }
+           |> set
+           |> render
+           |> clean_format ==
+             clean_format("""
+               {
+                 set {
+                   _:company <name>  "TurfBytes"^^<xs:string> .
+                   _:company <owner> _:owner .
+                   _:owner   <name>  "Jason"^^<xs:string> .
+                 }
+               }
+             """)
   end
 
   # test "render mutation schema given a model" do
@@ -126,20 +128,21 @@ defmodule DgraphEx.SetTest do
 
   test "render mutation set uses the uid as the subject when provided" do
     assert %Person{
-      _uid_: "6789",
-      name: "Buffy",
-      age: 20,
-    }
-    |> set()
-    |> render()
-    |> clean_format() == clean_format("""
-      {
-        set {
-          <6789> <name> "Buffy"^^<xs:string> .
-          <6789> <age> "20"^^<xs:int> .
-        }
-      }
-    """)
+             _uid_: "6789",
+             name: "Buffy",
+             age: 20
+           }
+           |> set()
+           |> render()
+           |> clean_format() ==
+             clean_format("""
+               {
+                 set {
+                   <6789> <name> "Buffy"^^<xs:string> .
+                   <6789> <age> "20"^^<xs:int> .
+                 }
+               }
+             """)
   end
 
   test "render mutation set can handle nested models with uids" do
@@ -153,16 +156,16 @@ defmodule DgraphEx.SetTest do
     }
 
     assert set(model)
-    |> render
-    |> clean_format == clean_format("""
-      {
-        set {
-          <1234> <name> \"Flim\"^^<xs:string> .
-          <1234> <owner> <5678> .
-          <5678> <name> \"Flinn\"^^<xs:string> .
-        }
-      }
-    """)
+           |> render
+           |> clean_format ==
+             clean_format("""
+               {
+                 set {
+                   <1234> <name> \"Flim\"^^<xs:string> .
+                   <1234> <owner> <5678> .
+                   <5678> <name> \"Flinn\"^^<xs:string> .
+                 }
+               }
+             """)
   end
-
 end

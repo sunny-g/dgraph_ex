@@ -1,4 +1,6 @@
 defmodule DgraphEx.Query.Var do
+  @moduledoc false
+
   alias DgraphEx.Query
 
   defstruct []

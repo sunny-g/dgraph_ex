@@ -1,8 +1,8 @@
 defmodule DgraphEx.Expr.Contains do
-  defstruct [
-    label: nil,
-    geo_json: nil,
-  ]
+  @moduledoc false
+
+  defstruct label: nil,
+            geo_json: nil
 
   defmacro __using__(_) do
     quote do
@@ -15,7 +15,7 @@ defmodule DgraphEx.Expr.Contains do
   def new(label, geo_json) when is_atom(label) and is_list(geo_json) do
     %__MODULE__{
       label: label,
-      geo_json: geo_json,
+      geo_json: geo_json
     }
   end
 

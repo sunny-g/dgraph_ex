@@ -14,12 +14,12 @@ defmodule DgraphEx.Expr.Uid do
 
   defstruct [
     :value,
-    :type,
+    :type
   ]
 
   @types [
     :literal,
-    :expression,
+    :expression
   ]
 
   defmacro __using__(_) do
@@ -29,8 +29,7 @@ defmodule DgraphEx.Expr.Uid do
   end
 
   defguard is_uid(value, type)
-      when (is_atom(value) or is_binary(value) or is_list(value))
-      and type in @types
+           when (is_atom(value) or is_binary(value) or is_list(value)) and type in @types
 
   @doc """
   lists of uid literals are rendered inside a `uid(<uids_here>)` function (as in @filter)
@@ -40,6 +39,7 @@ defmodule DgraphEx.Expr.Uid do
   def new(value) when is_uid(value, :literal), do: new(value, :literal)
   def new(value) when is_uid(value, :expression), do: new(value, :expression)
   def new(uids) when is_uid(uids, :expression), do: new(uids, :expression)
+
   def new(value, type) when is_uid(value, type) do
     %__MODULE__{value: value, type: type}
   end
@@ -55,24 +55,36 @@ defmodule DgraphEx.Expr.Uid do
   def as_naked(%__MODULE__{} = u), do: %{u | type: :naked}
 
   def render(%__MODULE__{value: value})
-      when is_atom(value), do: render_expression([value])
+      when is_atom(value),
+      do: render_expression([value])
+
   def render(%__MODULE__{value: value, type: :literal}) when is_binary(value) do
     {:ok, uid_literal} = Util.as_literal(value, :uid)
     uid_literal
   end
+
   def render(%__MODULE__{value: value, type: :literal})
-      when is_list(value), do: render_expression(value)
+      when is_list(value),
+      do: render_expression(value)
+
   def render(%__MODULE__{value: value, type: :naked})
-      when is_binary(value), do: value
+      when is_binary(value),
+      do: value
+
   def render(%__MODULE__{value: value, type: :expression})
-      when (is_atom(value) or is_binary(value)), do: render_expression([value])
+      when is_atom(value) or is_binary(value),
+      do: render_expression([value])
+
   def render(%__MODULE__{value: value, type: :expression})
-      when is_list(value), do: render_expression(value)
+      when is_list(value),
+      do: render_expression(value)
 
   defp render_expression(uids) when is_list(uids) do
-    args = uids
+    args =
+      uids
       |> Enum.map(&to_string/1)
       |> Enum.join(", ")
+
     "uid(" <> args <> ")"
   end
 end

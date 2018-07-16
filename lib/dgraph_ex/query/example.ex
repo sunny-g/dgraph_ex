@@ -1,4 +1,3 @@
-
 # defmodule ImageMenuItems do
 #   #model definitition here
 

@@ -14,10 +14,8 @@ defmodule DgraphEx.Expr.UidIn do
   ```
   """
 
-  defstruct [
-    predicate: nil,
-    uid:       nil,
-  ]
+  defstruct predicate: nil,
+            uid: nil
 
   defmacro __using__(_) do
     quote do
@@ -30,7 +28,7 @@ defmodule DgraphEx.Expr.UidIn do
   def new(predicate, uid) when is_atom(predicate) and is_binary(uid) do
     %__MODULE__{
       predicate: predicate,
-      uid: uid,
+      uid: uid
     }
   end
 

@@ -1,10 +1,10 @@
 defmodule DgraphEx.Expr.Regexp do
+  @moduledoc false
+
   alias DgraphEx.Util
 
-  defstruct [
-    label: nil,
-    regex: nil,
-  ]
+  defstruct label: nil,
+            regex: nil
 
   defmacro __using__(_) do
     quote do
@@ -20,7 +20,7 @@ defmodule DgraphEx.Expr.Regexp do
     if Regex.regex?(regex) do
       %__MODULE__{label: label, regex: regex}
     else
-      raise %RuntimeError{message: "Invalid Regex. Got: #{inspect regex}"}
+      raise %RuntimeError{message: "Invalid Regex. Got: #{inspect(regex)}"}
     end
   end
 
@@ -30,7 +30,7 @@ defmodule DgraphEx.Expr.Regexp do
 
   defp render_regex(regex) do
     regex
-    |> Regex.source
+    |> Regex.source()
     |> wrap_slashes
     |> append_options(regex)
   end

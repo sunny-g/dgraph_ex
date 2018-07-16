@@ -34,7 +34,6 @@ defmodule DgraphEx.UtilTest do
     assert Util.as_rendered([-111.925278, 33.501324]) == "[-111.925278,33.501324]"
   end
 
-
   test "as_literal/2 float" do
     assert Util.as_literal(3.14, :float) == {:ok, "3.14"}
   end
@@ -84,5 +83,4 @@ defmodule DgraphEx.UtilTest do
   test "has_struct?/1 returns true for struct-having-modules" do
     assert Util.has_struct?(URI) == true
   end
-
 end

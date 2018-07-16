@@ -1,5 +1,8 @@
 defmodule DgraphEx.Vertex do
+  @moduledoc false
+
   alias DgraphEx.{Expr, Field, Query, Util, Vertex}
+  alias Query.Select
   alias Expr.Uid
 
   defmacro __using__(_opts) do
@@ -13,13 +16,16 @@ defmodule DgraphEx.Vertex do
     quote do
       Module.register_attribute(__MODULE__, :vertex_fields, accumulate: true)
       unquote(block)
-      @fields Enum.reverse(@vertex_fields) ++ [
-        %Field{type: :uid_literal, predicate: :_uid_}
-      ]
+
+      @fields Enum.reverse(@vertex_fields) ++
+                [
+                  %Field{type: :uid_literal, predicate: :_uid_}
+                ]
 
       defstruct Enum.map(@fields, fn %Field{predicate: p, default: default} ->
-        {p, default}
-      end)
+                  {p, default}
+                end)
+
       def __vertex__(:default_label), do: unquote(default_label)
       def __vertex__(:fields), do: @fields
     end
@@ -30,25 +36,26 @@ defmodule DgraphEx.Vertex do
       def model(%Query{} = q, subject, %{__struct__: _} = the_model) do
         subject
         |> Vertex.populate_fields(the_model)
-        |> Enum.reduce(q, fn (field, acc_q) ->
-            case {field.object, field.model} do
-              {_, nil} ->
-                Query.put_sequence(acc_q, field)
-              {%{__struct__: module} = object, module} ->
-                model(q, field.subject, field.object)
-            end
-          end)
+        |> Enum.reduce(q, fn field, acc_q ->
+          case {field.object, field.model} do
+            {_, nil} ->
+              Query.put_sequence(acc_q, field)
+
+            {%{__struct__: module} = object, module} ->
+              model(q, field.subject, field.object)
+          end
+        end)
       end
     end
   end
 
-  def as_setter(subject, model = %{__struct__: _}) do
+  def as_setter(subject, %{__struct__: _} = model) do
     subject
     |> populate_fields(model)
     |> Enum.filter(fn
-        %{predicate: :_uid_} -> false
-        _ -> true
-      end)
+      %{predicate: :_uid_} -> false
+      _ -> true
+    end)
     |> Enum.map(&Field.as_setter/1)
   end
 
@@ -61,82 +68,98 @@ defmodule DgraphEx.Vertex do
   def as_selector(module) when is_atom(module) do
     as_selector(module.__struct__)
   end
+
   def as_selector(%_{} = model) do
     model
-    |> Map.from_struct
+    |> Map.from_struct()
     |> Map.drop([:__struct__])
     |> Enum.filter(fn
-        {_, false} -> false
-        _ -> true
-      end)
+      {_, false} -> false
+      _ -> true
+    end)
     |> Enum.map(fn
-        {key, %_{} = submodel} -> {key, Query.Select.new(submodel)}
-        {key, _} -> {key, nil}
-      end)
+      {key, %_{} = submodel} -> {key, Select.new(submodel)}
+      {key, _} -> {key, nil}
+    end)
   end
 
   def populate_fields(nil, %module{} = model) do
     module.__vertex__(:default_label)
     |> populate_fields(model)
   end
+
   def populate_fields(subject, %module{} = model) do
     populate_fields(subject, module, model)
   end
+
   def populate_fields(subject, module, model) do
     module.__vertex__(:fields)
     |> Enum.map(fn field ->
-        object = Map.get(model, field.predicate, nil)
-        cond do
-          Vertex.is_model?(object) ->
-            sub_subject = Vertex.setter_subject(object, field.predicate)
-            relationship = field
-              |> Field.put_subject(subject)
-              |> Field.put_object(sub_subject)
-            [relationship | populate_fields(sub_subject, object)]
-          !is_nil(object) ->
+      object = Map.get(model, field.predicate, nil)
+
+      cond do
+        Vertex.is_model?(object) ->
+          sub_subject = Vertex.setter_subject(object, field.predicate)
+
+          relationship =
             field
             |> Field.put_subject(subject)
-            |> Field.put_object(object)
-          true ->
-            nil
-        end
-      end)
-    |> List.flatten
+            |> Field.put_object(sub_subject)
+
+          [relationship | populate_fields(sub_subject, object)]
+
+        !is_nil(object) ->
+          field
+          |> Field.put_subject(subject)
+          |> Field.put_object(object)
+
+        true ->
+          nil
+      end
+    end)
+    |> List.flatten()
     |> Enum.filter(fn item -> item end)
   end
 
-  def join_model_and_uids(%{__struct__: module } = model, uids) do
-    label = :default_label
+  def join_model_and_uids(%{__struct__: module} = model, uids) do
+    label =
+      :default_label
       |> module.__vertex__
       |> to_string
 
     join_model_and_uids(model, uids, label)
   end
+
   def join_model_and_uids(model, uids, label) when is_atom(label) do
     join_model_and_uids(model, uids, to_string(label))
   end
+
   def join_model_and_uids(%_{} = model, uids, label) when is_binary(label) do
     uid = Map.get(uids, label)
+
     model
-    |> Map.from_struct
+    |> Map.from_struct()
     |> Enum.reduce(model, fn
-        ({key, %{__struct__: _} = submodel}, acc_model) ->
-          Map.put(acc_model, key, join_model_and_uids(submodel, uids, key))
-        (_, acc_model) ->
-          acc_model
-      end)
+      {key, %{__struct__: _} = submodel}, acc_model ->
+        Map.put(acc_model, key, join_model_and_uids(submodel, uids, key))
+
+      _, acc_model ->
+        acc_model
+    end)
     |> Map.put(:_uid_, uid)
   end
 
   def extract_uids(model) do
     extract_uids(model, model.__struct__.__vertex__(:default_label))
   end
+
   def extract_uids(model, subject) do
     if not is_model?(model) do
       raise """
-        Cannot extract the uids from non-Vertex models. Got #{inspect model}
+        Cannot extract the uids from non-Vertex models. Got #{inspect(model)}
       """
     end
+
     model
     |> do_extract_uids(subject)
     |> Enum.map(fn {pred, uid} -> {to_string(pred), uid} end)
@@ -145,17 +168,20 @@ defmodule DgraphEx.Vertex do
 
   def do_extract_uids(model, subject) do
     model
-    |> Map.from_struct
+    |> Map.from_struct()
     |> Enum.reduce([], fn
-        ({:_uid_, %Uid{value: uid}}, acc) when is_binary(uid) ->
-          [{subject, uid} | acc]
-        ({:_uid_, uid}, acc) when is_binary(uid) ->
-          [{subject, uid} | acc]
-        ({key, %{__struct__: _} = other_model}, acc) ->
-          do_extract_uids(other_model, key) ++ acc
-        (_, acc) ->
-          acc
-      end)
+      {:_uid_, %Uid{value: uid}}, acc when is_binary(uid) ->
+        [{subject, uid} | acc]
+
+      {:_uid_, uid}, acc when is_binary(uid) ->
+        [{subject, uid} | acc]
+
+      {key, %{__struct__: _} = other_model}, acc ->
+        do_extract_uids(other_model, key) ++ acc
+
+      _, acc ->
+        acc
+    end)
   end
 
   # def do_extract_uids(model, subject) do
@@ -184,64 +210,75 @@ defmodule DgraphEx.Vertex do
   end
 
   def is_model?(%{__struct__: module}), do: is_model?(module)
+
   def is_model?(module)
-      when is_atom(module), do: Util.has_function?(module, :__vertex__, 1)
+      when is_atom(module),
+      do: Util.has_function?(module, :__vertex__, 1)
+
   def is_model?(_), do: false
 
   def setter_subject(model, default \\ nil)
   def setter_subject(%Uid{} = uid, _), do: uid.value
+
   def setter_subject(%{__struct__: module} = model, default) do
     if !is_model?(module) do
       raise("""
         Vertex.setter_subject only responds to Vertex models.
-        Got #{inspect model}
+        Got #{inspect(model)}
       """)
     end
+
     do_setter_subject(model, default)
   end
 
   def do_setter_subject(%{_uid_: uid}, _) when is_binary(uid) do
     uid
-    |> Uid.new
-    |> Uid.as_literal
+    |> Uid.new()
+    |> Uid.as_literal()
   end
+
   def do_setter_subject(%{_uid_: %Uid{} = uid}, _), do: Uid.as_literal(uid)
+
   def do_setter_subject(%{__struct__: module}, nil) do
     module.__vertex__(:default_label)
   end
+
   def do_setter_subject(_, default) when not is_nil(default), do: default
 
   # nil params gets you nil.
   def populate_model(_, nil), do: nil
+
   def populate_model(%{__struct__: _} = model, params_list) when is_list(params_list) do
     # params had a list
     # so we should populate each item of the list with a model.
     Enum.map(params_list, fn params -> populate_model(model, params) end)
   end
+
   def populate_model(module, params) when is_atom(module) do
     populate_model(module.__struct__, params)
   end
+
   def populate_model(%{__struct__: module} = model, %{} = params) do
-    do_populate_model(module, model |> Map.from_struct, params)
+    do_populate_model(module, model |> Map.from_struct(), params)
   end
 
   defp do_populate_model(module, model_data, params) do
     model_data
     |> Enum.map(fn
-        {key, module} when is_atom(module) and not is_nil(module) ->
-          sub_params = Util.get_value(params, key, nil)
-          {key, populate_model(module.__struct__, sub_params)}
+      {key, module} when is_atom(module) and not is_nil(module) ->
+        sub_params = Util.get_value(params, key, nil)
+        {key, populate_model(module.__struct__, sub_params)}
 
-        {key, %{__struct__: _} = sub_model} ->
-          sub_params = Util.get_value(params, key, nil)
-          {key, populate_model(sub_model, sub_params)}
+      {key, %{__struct__: _} = sub_model} ->
+        sub_params = Util.get_value(params, key, nil)
+        {key, populate_model(sub_model, sub_params)}
 
-        {key, model_value} ->
-          {key, Util.get_value(params, key, model_value)}
-      end)
-    |> Enum.reduce(model_data, fn ({key, value}, model_acc) ->
-        Map.put(model_acc, key, value)
-      end)
+      {key, model_value} ->
+        {key, Util.get_value(params, key, model_value)}
+    end)
+    |> Enum.reduce(model_data, fn {key, value}, model_acc ->
+      Map.put(model_acc, key, value)
+    end)
     |> Map.put(:__struct__, module)
   end
 

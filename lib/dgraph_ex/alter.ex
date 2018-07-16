@@ -1,9 +1,9 @@
 defmodule DgraphEx.Alter do
+  @moduledoc false
+
   alias DgraphEx.{Alter, Field}
 
-  defstruct [
-    fields: []
-  ]
+  defstruct fields: []
 
   defmacro __using__(_) do
     quote do
@@ -39,7 +39,6 @@ defmodule DgraphEx.Alter do
   def append(%__MODULE__{} = model, %Field{} = field) do
     %{model | fields: model.fields ++ [field]}
   end
-
 
   @doc """
   Renders the DgraphEx.Alter struct as a string

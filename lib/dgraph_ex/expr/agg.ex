@@ -1,17 +1,11 @@
 defmodule DgraphEx.Expr.Agg do
-  alias DgraphEx.Expr.Val
+  @moduledoc false
 
-  defmacro define_funcs(module, name) do
-    quote do
-      def unquote(name)(%Val{} = val), do: %unquote(module){val: val}
-    end
-  end
+  alias DgraphEx.Expr.Val
 
   defmacro __using__(name) do
     quote do
-      defstruct [
-        val: nil
-      ]
+      defstruct val: nil
 
       @doc """
       Aggregation
@@ -27,11 +21,17 @@ defmodule DgraphEx.Expr.Agg do
       """
       def render(%__MODULE__{val: %Val{} = val}) do
         val
-        |> Val.render
+        |> Val.render()
         |> do_render()
       end
 
       defp do_render(rendered_val), do: "#{unquote(name)}(#{rendered_val})"
+    end
+  end
+
+  defmacro define_funcs(module, name) do
+    quote do
+      def unquote(name)(%Val{} = val), do: %unquote(module){val: val}
     end
   end
 end

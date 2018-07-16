@@ -1,10 +1,10 @@
 defmodule DgraphEx.Expr.Allofterms do
+  @moduledoc false
+
   alias DgraphEx.Util
 
-  defstruct [
-    label: nil,
-    value: nil,
-  ]
+  defstruct label: nil,
+            value: nil
 
   defmacro __using__(_) do
     quote do
@@ -16,8 +16,8 @@ defmodule DgraphEx.Expr.Allofterms do
 
   def new(label, value) when is_atom(label) and is_binary(value) do
     %__MODULE__{
-      label:  label,
-      value:  value,
+      label: label,
+      value: value
     }
   end
 

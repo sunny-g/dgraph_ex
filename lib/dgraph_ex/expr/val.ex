@@ -1,9 +1,9 @@
 defmodule DgraphEx.Expr.Val do
+  @moduledoc false
+
   alias DgraphEx.Util
 
-  defstruct [
-    label: nil
-  ]
+  defstruct label: nil
 
   defmacro __using__(_) do
     quote do

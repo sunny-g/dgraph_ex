@@ -60,68 +60,73 @@ defmodule DgraphEx.DeleteTest do
 
   test "render mutation delete given (%Muation{}, uid, field_name, value)" do
     assert delete(uid("123"), :name, "Jason")
-    |> render
-    |> clean_format == clean_format("""
-        {
-          delete {
-            <123> <name> "Jason" .
-          }
-        }
-    """)
+           |> render
+           |> clean_format ==
+             clean_format("""
+                 {
+                   delete {
+                     <123> <name> "Jason" .
+                   }
+                 }
+             """)
   end
 
   test "render mutation delete can take wildcards" do
     assert delete("*", :name, "Jason")
-    |> render
-    |> clean_format == clean_format("""
-      {
-        delete {
-          * <name> "Jason" .
-        }
-      }
-    """)
+           |> render
+           |> clean_format ==
+             clean_format("""
+               {
+                 delete {
+                   * <name> "Jason" .
+                 }
+               }
+             """)
   end
 
   test "render mutation delete can delete all the edges" do
     assert delete("*", "*", "*")
-    |> render
-    |> clean_format == clean_format("""
-      {
-        delete {
-          * * * .
-        }
-      }
-    """)
+           |> render
+           |> clean_format ==
+             clean_format("""
+               {
+                 delete {
+                   * * * .
+                 }
+               }
+             """)
   end
 
   test "render mutation delete can take a block" do
     assert delete({
-      field(uid("1234"), :name, "Jason"),
-      field(uid("3456"), :name, "Wimu"),
-    })
-    |> render
-    |> clean_format == clean_format("""
-      {
-        delete {
-          <1234> <name> \"Jason\" .
-          <3456> <name> \"Wimu\" .
-        }
-      }
-    """)
+             field(uid("1234"), :name, "Jason"),
+             field(uid("3456"), :name, "Wimu")
+           })
+           |> render
+           |> clean_format ==
+             clean_format("""
+               {
+                 delete {
+                   <1234> <name> \"Jason\" .
+                   <3456> <name> \"Wimu\" .
+                 }
+               }
+             """)
   end
 
   test "render mutation delete can take a Field as the second arg" do
     assert delete(field(uid("1235"), :name, "Jason"))
-    |> delete(field(uid("1234"), :name, "Jason"))
-    |> render
-    |> clean_format == clean_format("""
-      {
-        delete {
-          <1235> <name> \"Jason\" .
-          <1234> <name> \"Jason\" .
-        }
-      }
-    """)
+           |> delete(field(uid("1234"), :name, "Jason"))
+           |> render
+           |> clean_format ==
+             clean_format("""
+               {
+                 delete {
+                   <1235> <name> \"Jason\" .
+                   <1234> <name> \"Jason\" .
+                 }
+               }
+             """)
   end
 
   # test "render mutation set uses the uid as the subject when provided" do
@@ -164,5 +169,4 @@ defmodule DgraphEx.DeleteTest do
   #     }
   #   """)
   # end
-
 end

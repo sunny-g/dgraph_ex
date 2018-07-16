@@ -1,12 +1,14 @@
 defmodule DgraphEx.Expr.Math do
-  defstruct [
-    expr: nil
-  ]
+  @moduledoc false
+
+  defstruct expr: nil
 
   defmacro math(block) do
-    expr = block
-      |> Macro.to_string
+    expr =
+      block
+      |> Macro.to_string()
       |> String.replace(":", "")
+
     quote do
       %unquote(__MODULE__){expr: unquote(expr)}
     end

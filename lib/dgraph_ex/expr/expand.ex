@@ -1,7 +1,7 @@
 defmodule DgraphEx.Expr.Expand do
-  defstruct [
-    label: nil
-  ]
+  @moduledoc false
+
+  defstruct label: nil
 
   defmacro __using__(_) do
     quote do

@@ -1,43 +1,81 @@
 defmodule DgraphEx.Expr do
-  alias DgraphEx.Expr
+  @moduledoc false
+
+  alias DgraphEx.Expr.{
+    # indices
+    Allofterms,
+    Anyofterms,
+    Alloftext,
+    Anyoftext,
+    Eq,
+    Regexp,
+
+    # Neq indices
+    Neq,
+    Ge,
+    Gt,
+    Le,
+    Lt,
+
+    # Aggs
+    Agg,
+    Avg,
+    Max,
+    Min,
+    Sum,
+
+    # geo
+    Near,
+    Within,
+    Contains,
+    Intersects,
+
+    # simples
+    Val,
+    Count,
+    Uid,
+    Has,
+    Expand,
+    UidIn
+  }
 
   defmacro __using__(_) do
     quote do
       # indexes
-      use Expr.Eq
-      use Expr.Allofterms
-      use Expr.Anyofterms
-      use Expr.Alloftext
-      use Expr.Anyoftext
-      use Expr.Regexp
+      use Eq
+      use Allofterms
+      use Anyofterms
+      use Alloftext
+      use Anyoftext
+      use Regexp
 
-      #Neq indexes
-      require Expr.Neq
-      Expr.Neq.define_funcs(Expr.Lt, :lt)
-      Expr.Neq.define_funcs(Expr.Le, :le)
-      Expr.Neq.define_funcs(Expr.Gt, :gt)
-      Expr.Neq.define_funcs(Expr.Ge, :ge)
+      # Neq indexes
+      require Neq
+      Neq.define_funcs(Lt, :lt)
+      Neq.define_funcs(Le, :le)
+      Neq.define_funcs(Gt, :gt)
+      Neq.define_funcs(Ge, :ge)
 
       # aggs
-      require Expr.Agg
-      Expr.Agg.define_funcs(Expr.Sum, :sum)
-      Expr.Agg.define_funcs(Expr.Avg, :avg)
-      Expr.Agg.define_funcs(Expr.Min, :min)
-      Expr.Agg.define_funcs(Expr.Max, :max)
+      require Agg
+      Agg.define_funcs(Sum, :sum)
+      Agg.define_funcs(Avg, :avg)
+      Agg.define_funcs(Min, :min)
+      Agg.define_funcs(Max, :max)
 
       # geo
-      use Expr.Near
-      use Expr.Within
-      use Expr.Contains
-      use Expr.Intersects
+      use Near
+      use Within
+      use Contains
+      use Intersects
 
       # simples
-      use Expr.Val
-      use Expr.Count
-      use Expr.Uid
-      use Expr.Has
-      use Expr.Expand
-      use Expr.UidIn
+      use Val
+      use Count
+      use Uid
+      use Has
+      use Expand
+      use UidIn
     end
   end
 end

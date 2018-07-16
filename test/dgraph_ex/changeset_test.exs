@@ -7,7 +7,7 @@ defmodule DgraphEx.ChangesetTest do
   alias DgraphEx.ModelCompany, as: Company
 
   test "a changeset defaults to invalid" do
-    assert Changeset.is_valid?(%Changeset{}) == false
+    assert Changeset.valid?(%Changeset{}) == false
   end
 
   test "an instantiated changeset has nil as errors" do
@@ -17,36 +17,40 @@ defmodule DgraphEx.ChangesetTest do
   end
 
   test "a changeset that has run and has no errors is valid" do
-    assert Changeset.is_valid?(%Changeset{errors: []}) == true
+    assert Changeset.valid?(%Changeset{errors: []}) == true
   end
 
   test "cast extracts changes and model into plain old maps, and module to module" do
     assert Changeset.cast(%Person{}, %{name: "Bleep", age: 34}, [:name, :age]) == %Changeset{
-      module:   Person,
-      model:    %{name: nil, age: nil, works_at: nil, _uid_: nil},
-      changes:  %{name: "Bleep", age: 34},
-      errors:   [],
-    }
+             module: Person,
+             model: %{name: nil, age: nil, works_at: nil, _uid_: nil},
+             changes: %{name: "Bleep", age: 34},
+             errors: []
+           }
   end
 
   test "uncast applies changes of a changeset to the model of the changeset and returns a struct of that model" do
     result =
       %Person{}
       |> Changeset.cast(%{name: "Bleep", age: 34}, [:name, :age])
-      |> Changeset.uncast
-    assert result == {:ok, %Person{
-      name:   "Bleep",
-      age:    34,
-      _uid_:  nil,
-    }}
+      |> Changeset.uncast()
+
+    assert result ==
+             {:ok,
+              %Person{
+                name: "Bleep",
+                age: 34,
+                _uid_: nil
+              }}
   end
 
   test "cast only allows changes that are in the allowed_fields list" do
     cs =
       %Person{}
       |> Changeset.cast(%{name: "Bleep", age: 34, unwanted_field: true}, [:name, :age])
+
     # unwanted_field is removed
-    assert cs.changes ==  %{name: "Bleep", age: 34}
+    assert cs.changes == %{name: "Bleep", age: 34}
     assert !Map.has_key?(cs.changes, :unwanted_field)
   end
 
@@ -55,6 +59,7 @@ defmodule DgraphEx.ChangesetTest do
       %Person{}
       |> Changeset.cast(%{name: "Bleep", age: 34}, [:name, :age])
       |> Changeset.validate_required([:name, :age])
+
     assert cs.errors == []
   end
 
@@ -74,6 +79,7 @@ defmodule DgraphEx.ChangesetTest do
       |> Changeset.cast(%{name: "Bleep", age: 34}, [:name, :age])
       |> Changeset.validate_type(:name, :string)
       |> Changeset.validate_type(:age, :int)
+
     assert cs.errors == []
   end
 
@@ -82,6 +88,7 @@ defmodule DgraphEx.ChangesetTest do
       %Person{}
       |> Changeset.cast(%{name: "Bleep", age: 34}, [:name, :age])
       |> Changeset.validate_type(:name, :geo)
+
     assert cs.errors == [{:name, :invalid_geo}]
   end
 
@@ -90,6 +97,7 @@ defmodule DgraphEx.ChangesetTest do
       %Person{}
       |> Changeset.cast(%{name: "Bleep", age: 34}, [:name, :age])
       |> Changeset.validate_type(name: :geo, age: :float)
+
     assert cs.errors == [age: :invalid_float, name: :invalid_geo]
   end
 
@@ -98,6 +106,7 @@ defmodule DgraphEx.ChangesetTest do
       %Person{}
       |> Changeset.cast(%{name: :nope, age: :nope}, [:name, :age])
       |> Changeset.validate_type([:name, :age])
+
     assert cs.errors == [age: :invalid_int, name: :invalid_string]
   end
 
@@ -106,15 +115,16 @@ defmodule DgraphEx.ChangesetTest do
       %Person{}
       |> Changeset.cast(%{name: :nope, age: :nope}, [:name, :age])
       |> Changeset.validate_type([:name, age: :float])
+
     assert cs.errors == [age: :invalid_float, name: :invalid_string]
   end
-
 
   test "validate_type can handle a mixed list of atoms and keywords with lists as values" do
     cs =
       %Person{}
       |> Changeset.cast(%{name: :nope, age: :nope}, [:name, :age])
       |> Changeset.validate_type([:name, age: [:int, :float]])
+
     assert cs.errors == [age: :invalid_type, name: :invalid_string]
   end
 
@@ -125,12 +135,14 @@ defmodule DgraphEx.ChangesetTest do
       |> Changeset.validate_type([:name, age: [:int, :float]])
       |> Changeset.uncast()
 
-    assert result ==  {:error, %DgraphEx.Changeset{
-      changes: %{age: :nope, name: :nope},
-      errors: [age: :invalid_type, name: :invalid_string],
-      model: %{_uid_: nil, age: nil, name: nil, works_at: nil},
-      module: DgraphEx.ModelPerson
-    }}
+    assert result ==
+             {:error,
+              %DgraphEx.Changeset{
+                changes: %{age: :nope, name: :nope},
+                errors: [age: :invalid_type, name: :invalid_string],
+                model: %{_uid_: nil, age: nil, name: nil, works_at: nil},
+                module: DgraphEx.ModelPerson
+              }}
   end
 
   test "validate_model can puts no error when model is nil" do
@@ -139,27 +151,36 @@ defmodule DgraphEx.ChangesetTest do
       %Person{}
       |> Changeset.cast(%{name: :nope, age: :nope}, [:name, :age])
       |> Changeset.validate_model(:works_at, Company, :changeset)
-      # |> Changeset.uncast()
+
+    # |> Changeset.uncast()
     assert changeset.errors == []
   end
 
   test "validate_model uses put_error when field changes are an invalid map" do
     changes = %{"name" => "Jason", "age" => 33, "works_at" => %{}}
+
     changeset =
       %Person{}
       |> Changeset.cast(changes, [:name, :age, :works_at])
       |> Changeset.validate_model(:works_at, Company, :changeset)
+
     assert changeset.errors == [works_at: [name: :invalid_string, name: :cannot_be_nil]]
   end
 
   test "validate_model puts not errors when field changes are an valid map" do
-    changes = %{"name" => "Jason", "age" => 33, "works_at" => %{
-      "name" => "Home"
-    }}
+    changes = %{
+      "name" => "Jason",
+      "age" => 33,
+      "works_at" => %{
+        "name" => "Home"
+      }
+    }
+
     changeset =
       %Person{}
       |> Changeset.cast(changes, [:name, :age, :works_at])
       |> Changeset.validate_model(:works_at, Company, :changeset)
+
     assert changeset.errors == []
   end
 end

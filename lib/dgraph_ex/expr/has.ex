@@ -1,7 +1,7 @@
 defmodule DgraphEx.Expr.Has do
-  defstruct [
-    value: nil
-  ]
+  @moduledoc false
+
+  defstruct value: nil
 
   defmacro __using__(_) do
     quote do

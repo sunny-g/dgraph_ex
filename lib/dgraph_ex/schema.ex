@@ -1,16 +1,16 @@
 defmodule DgraphEx.Schema do
+  @moduledoc false
+
   alias DgraphEx.{Schema, Query, Field}
 
   @naked_fields [
     :type,
     :index,
     :reverse,
-    :tokenizer,
+    :tokenizer
   ]
 
-  defstruct [
-    fields:  [],
-  ]
+  defstruct fields: []
 
   defmacro __using__(_) do
     quote do
@@ -21,41 +21,49 @@ defmodule DgraphEx.Schema do
           message: "schema only responds to Vertex models. #{module} does not use DgraphEx.Vertex"
         }
       end
+
       def schema(%Set{} = set, module) when is_atom(module) do
         if !Vertex.is_model?(module) do
           raise_non_vertex_module(module)
         end
+
         Set.put_field(set, %Schema{
-          fields: module.__vertex__(:fields),
+          fields: module.__vertex__(:fields)
         })
       end
+
       def schema(%Set{} = set, block) when is_tuple(block) do
-        %Set{fields: block |> Tuple.to_list}
+        %Set{fields: block |> Tuple.to_list()}
       end
+
       def schema(block) when is_tuple(block) do
         fields =
           block
-          |> Tuple.to_list
+          |> Tuple.to_list()
           |> Enum.map(fn
             %Field{predicate: pred} -> pred
             pred when is_atom(pred) -> pred
           end)
+
         %Schema{
-          fields: fields,
+          fields: fields
         }
       end
+
       def schema(module) when is_atom(module) do
         if Vertex.is_model?(module) do
           fields =
             module.__vertex__(:fields)
             |> Enum.map(fn %Field{predicate: pred} -> pred end)
+
           %Schema{
-            fields: fields,
+            fields: fields
           }
         else
           raise_non_vertex_module(module)
         end
       end
+
       def schema(%module{}), do: schema(module)
     end
   end
@@ -63,6 +71,7 @@ defmodule DgraphEx.Schema do
   def render(%Schema{fields: []}) do
     "schema {\n#{@naked_fields |> Enum.join("\n")}\n}"
   end
+
   def render(%Schema{fields: fields}) when length(fields) > 0 do
     "schema(pred: [#{fields |> Enum.join(", ")}]) {\n#{@naked_fields |> Enum.join("\n")}\n}"
   end
