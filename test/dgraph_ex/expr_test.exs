@@ -29,7 +29,7 @@ defmodule DgraphEx.ExprTest do
     Val,
     Count,
     Uid,
-    Has,
+    Has
   }
 
   test "render count" do

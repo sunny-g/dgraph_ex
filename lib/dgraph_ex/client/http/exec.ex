@@ -55,6 +55,7 @@ defmodule DgraphEx.Client.HTTP.Exec do
         {:error, reason}
     end
   end
+
   defp process_response(_), do: {:error, :invalid_response}
 
   @spec list_to_map(klist :: list) :: map

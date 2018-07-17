@@ -19,7 +19,7 @@ defmodule DgraphEx.Client.HTTP.UnitTest.QueryTest do
       expected_headers = %{"X-Dgraph-LinRead" => ~s({"1":12})}
 
       assert_exec_params({expected_path, expected_body, expected_headers})
-      HTTP.query(expected_body, [lin_read: %{"1" => 12}])
+      HTTP.query(expected_body, lin_read: %{"1" => 12})
     end
 
     test "should set query vars header" do
@@ -37,13 +37,14 @@ defmodule DgraphEx.Client.HTTP.UnitTest.QueryTest do
       expected_body = ""
       lin_read = %{"1" => 12}
       vars = %{a: 13}
+
       expected_headers = %{
         "X-Dgraph-LinRead" => ~s({"1":12}),
         "X-Dgraph-Vars" => ~s({"$a":"13"})
       }
 
       assert_exec_params({expected_path, expected_body, expected_headers})
-      HTTP.query({expected_body, vars}, [lin_read: lin_read])
+      HTTP.query({expected_body, vars}, lin_read: lin_read)
     end
   end
 end
