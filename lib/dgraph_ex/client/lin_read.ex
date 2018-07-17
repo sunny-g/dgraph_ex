@@ -15,13 +15,18 @@ defmodule DgraphEx.Client.LinRead do
   Serializes the lin_read object to a JSON string
   """
   @spec encode(lin_read :: t) :: {:ok, bitstring} | {:error, any}
-  def encode(%{} = lin_read), do: Poison.encode(lin_read)
+  def encode(%{} = lin_read) do
+    if valid?(lin_read) do
+      Poison.encode(lin_read)
+    else
+      {:error, :invalid_lin_read}
+    end
+  end
 
   @doc """
   Merges two lin_read objects, taking the max value for any duplicate keys
   """
-  @spec merge_lin_reads(target :: t, source :: t) ::
-          {:ok, t} | {:error, :invalid_lin_read}
+  @spec merge_lin_reads(target :: t, source :: t) :: {:ok, t} | {:error, :invalid_lin_read}
   def merge_lin_reads(%{} = target, %{} = source) do
     if valid?(source) do
       new_lin_read =

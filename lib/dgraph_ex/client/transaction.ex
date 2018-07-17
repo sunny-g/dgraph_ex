@@ -40,6 +40,7 @@ defmodule DgraphEx.Client.Transaction do
           {:ok, t} | {:error, :invalid_lin_read}
   def merge_lin_reads(%__MODULE__{} = state, %{} = new_lin_read) do
     %__MODULE__{lin_read: lin_read} = state
+
     OK.with do
       new_lin_read <- LinRead.merge_lin_reads(lin_read, new_lin_read)
       state = %__MODULE__{state | lin_read: new_lin_read}
