@@ -9,6 +9,9 @@ defmodule DgraphEx.Client.HTTP do
     - `:exec`: custom HTTP post function, used mainly for testing (defaults to `HTTPoison.post/4`)
   """
 
+  import DgraphEx.Util, only: [merge_keyword_lists: 2]
+  alias Poison
+
   alias DgraphEx.{
     Alter,
     Client,
@@ -48,6 +51,17 @@ defmodule DgraphEx.Client.HTTP do
 
   @spec alter(alteration :: ClientBase.alter_input()) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
+
+  def alter(:drop_all), do: alter(~s({"drop_all":true}))
+
+  def alter({:drop_attr, attr}) when is_atom(attr) do
+    alter(~s({"drop_attr":"#{Atom.to_string(attr)}"))
+  end
+
+  def alter({:drop_attr, attr}) when is_bitstring(attr) do
+    alter(~s({"drop_attr":"#{attr}"}))
+  end
+
   def alter([%Field{} | _] = fields) do
     alteration = Alter.new(fields)
     alter(alteration)
@@ -207,17 +221,6 @@ defmodule DgraphEx.Client.HTTP do
   defp encode_var_val(val) when is_float(val), do: Float.to_string(val)
   defp encode_var_val(val) when is_integer(val), do: Integer.to_string(val)
   defp encode_var_val(val) when is_bitstring(val), do: val
-
-  @spec merge_keyword_lists(target :: list, source :: list) :: list
-  defp merge_keyword_lists(target, source)
-       when is_list(target) and is_list(source) do
-    Enum.map(target, fn {k, v} ->
-      case Keyword.fetch(source, k) do
-        {:ok, val} -> {k, val}
-        :error -> {k, v}
-      end
-    end)
-  end
 
   @spec do_request(url :: bitstring, body :: bitstring, headers :: map) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}

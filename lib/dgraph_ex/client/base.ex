@@ -1,30 +1,3 @@
-defmodule DgraphEx.Client.Base.Response do
-  @moduledoc """
-  Dgraph REST API response type
-  """
-
-  defstruct data: nil,
-            extensions: %{},
-            code: "",
-            message: "",
-            errors: []
-
-  @type error ::
-          atom
-          | bitstring
-          | %{
-              code: bitstring,
-              message: bitstring
-            }
-  @type t :: %__MODULE__{
-          data: map,
-          extensions: map,
-          code: bitstring,
-          message: bitstring,
-          errors: [error]
-        }
-end
-
 defmodule DgraphEx.Client.Base do
   @moduledoc """
   The base Dgraph Client behaviour
@@ -52,7 +25,9 @@ defmodule DgraphEx.Client.Base do
 
   @type abort_input :: Transaction.id()
   @type alter_input ::
-          bitstring
+          :drop_all
+          | {:drop_attr, bitstring}
+          | bitstring
           | module
           | [%Field{}]
           | %Alter{}

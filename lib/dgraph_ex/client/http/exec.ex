@@ -6,10 +6,9 @@ defmodule DgraphEx.Client.HTTP.Exec do
   """
 
   use HTTPoison.Base
-  alias DgraphEx.Client.{Base, HTTP}
-  alias Base, as: ClientBase
+  alias DgraphEx.Client.{Base, HTTP, Response}
   alias HTTP.ExecBase
-  alias ClientBase.Response
+  alias Response
   require OK
 
   @behaviour ExecBase
@@ -24,7 +23,7 @@ defmodule DgraphEx.Client.HTTP.Exec do
   Can be overridden via the `:exec` option in the `:dgraph_ex` config
   """
   @spec exec(url :: bitstring, body :: bitstring, headers :: map) ::
-          {:ok, ClientBase.response()} | {:error, ClientBase.error()}
+          {:ok, Base.response()} | {:error, Base.error()}
   def exec(url, body, headers \\ %{}) do
     OK.with do
       res <- __MODULE__.post(url, body, headers, hackney: @hackney_opts)
@@ -36,7 +35,7 @@ defmodule DgraphEx.Client.HTTP.Exec do
 
   @doc false
   @spec process_response(res :: %HTTPoison.Response{}) ::
-          {:ok, ClientBase.response()} | {:error, ClientBase.error()}
+          {:ok, Base.response()} | {:error, Base.error()}
   defp process_response(%HTTPoison.Response{body: body}) do
     response =
       OK.with do

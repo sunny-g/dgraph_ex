@@ -82,4 +82,15 @@ defmodule DgraphEx.Util do
       true -> default
     end
   end
+
+  @spec merge_keyword_lists(target :: list, source :: list) :: list
+  def merge_keyword_lists(target, source)
+      when is_list(target) and is_list(source) do
+    Enum.map(target, fn {k, v} ->
+      case Keyword.fetch(source, k) do
+        {:ok, val} -> {k, val}
+        :error -> {k, v}
+      end
+    end)
+  end
 end
