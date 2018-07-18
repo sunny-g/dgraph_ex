@@ -26,7 +26,6 @@ defmodule DgraphEx.Client.ResponseTest do
       }
 
       tx = %Tx{
-        complete: false,
         start_ts: 4,
         keys: [
           "AAALX3ByZWRpY2F0ZV8AAAAAAAAAAAI=",

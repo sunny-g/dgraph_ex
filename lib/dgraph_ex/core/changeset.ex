@@ -117,7 +117,7 @@ defmodule DgraphEx.Core.Changeset do
           module,
           func_name,
           submodel,
-          submodel |> Map.from_struct()
+          Map.from_struct(submodel)
         )
 
       %{} = changes ->

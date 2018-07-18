@@ -2,7 +2,7 @@ defmodule DgraphEx.Client.HTTP do
   @moduledoc """
   The HTTP Client for Dgraph (just makes the raw requests over REST)
 
-  HTTP Client configuration options (under key `:dgraph_ex`):
+  Configuration options (under key `:dgraph_ex`):
     - `:endpoint`: URL of the Dgraph database
     - `:abort_path`, `:alter_path`, `:commit_path`, `:mutate_path` and `:query_path`: URL suffixes appended to the endpoint for each operation
     - `:headers`: custom headers to be merged in with each request
@@ -10,8 +10,6 @@ defmodule DgraphEx.Client.HTTP do
   """
 
   import DgraphEx.Util, only: [merge_keyword_lists: 2]
-  alias Poison
-
   alias DgraphEx.Client
 
   alias DgraphEx.Core.{
@@ -26,7 +24,8 @@ defmodule DgraphEx.Client.HTTP do
 
   alias Client.{HTTP, LinRead, Transaction}
   alias Client.Base, as: ClientBase
-  alias HTTP.Exec, as: DefaultExec
+  alias HTTP.Request, as: DefaultRequest
+  alias Poison
   require Transaction, as: Tx
   require OK
 
@@ -45,7 +44,7 @@ defmodule DgraphEx.Client.HTTP do
   @query_path Application.get_env(:dgraph_ex, :query_path, "/query")
   @abort_path Application.get_env(:dgraph_ex, :abort_path, "/abort")
   @commit_path Application.get_env(:dgraph_ex, :commit_path, "/commit")
-  @exec Application.get_env(:dgraph_ex, :exec, DefaultExec)
+  @request Application.get_env(:dgraph_ex, :request, DefaultRequest)
 
   defguard are_query_vars(vars)
            when (is_map(vars) and map_size(vars) > 0) or is_list(vars)
@@ -224,7 +223,7 @@ defmodule DgraphEx.Client.HTTP do
 
   @spec do_request(url :: bitstring, body :: bitstring, headers :: map) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
-  defp do_request(url, body, headers \\ %{}), do: @exec.exec(url, body, headers)
+  defp do_request(url, body, headers \\ %{}), do: @request.exec(url, body, headers)
 
   @spec make_request(url :: bitstring, body :: bitstring) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}

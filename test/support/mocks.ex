@@ -1,1 +1,1 @@
-Mox.defmock(DgraphEx.Client.HTTP.ExecMock, for: DgraphEx.Client.HTTP.ExecBase)
+Mox.defmock(DgraphEx.Client.HTTP.RequestMock, for: DgraphEx.Client.HTTP.RequestBase)

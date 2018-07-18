@@ -1,7 +1,7 @@
 defmodule DgraphEx.Client.HTTP.UnitTest.QueryTest do
   use ExUnit.Case, async: true
   import Mox
-  import TestHelpers.ExecMock
+  import TestHelpers.RequestMock
 
   alias DgraphEx.Client.HTTP
 

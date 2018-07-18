@@ -5,8 +5,7 @@ defmodule DgraphEx.Client.Transaction do
   alias DgraphEx.Client.Transaction, as: Tx
   require OK
 
-  defstruct complete: false,
-            lin_read: %{},
+  defstruct lin_read: %{},
             keys: [],
             start_ts: 0
 
@@ -15,7 +14,6 @@ defmodule DgraphEx.Client.Transaction do
   @type keys :: [key]
   @type update :: {keys :: Tx.key() | Tx.keys(), lin_read :: LinRead.t()}
   @type t :: %Tx{
-          complete: boolean,
           lin_read: LinRead.t(),
           keys: keys(),
           start_ts: id()
@@ -23,8 +21,6 @@ defmodule DgraphEx.Client.Transaction do
 
   @doc false
   defguard is_id(txid) when is_integer(txid) and txid > 0
-
-  def is_complete(%Tx{complete: complete}), do: complete
 
   @doc """
   Concats a list of keys to the existing keys in the transaction's state
@@ -58,7 +54,7 @@ defmodule DgraphEx.Client.Transaction do
   Generally, the second transaction state object is created from a /mutate
   response
   """
-  @spec update(state :: t(), new_tx :: t()) :: {:ok, t()} | {:error, any}
+  @spec update(state :: t(), new_tx :: t()) :: {:ok, t()} | {:error, :invalid_lin_read}
   def update(%Tx{start_ts: txid}, %Tx{start_ts: new_txid})
       when txid != new_txid,
       do: {:error, :txid_mismatch}

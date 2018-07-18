@@ -10,15 +10,15 @@ defmodule TestHelpers do
   end
 end
 
-defmodule TestHelpers.ExecMock do
+defmodule TestHelpers.RequestMock do
   @moduledoc false
 
   use ExUnit.Case, async: true
   import Mox
-  alias DgraphEx.Client.HTTP.ExecMock
+  alias DgraphEx.Client.HTTP.RequestMock
 
   def assert_exec_params({expected_path, expected_body, expected_headers}) do
-    expect(ExecMock, :exec, fn path, body, headers ->
+    expect(RequestMock, :exec, fn path, body, headers ->
       assert path == expected_path
       assert body == expected_body
       assert headers == expected_headers

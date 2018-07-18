@@ -15,8 +15,8 @@ defmodule DgraphEx.Client.Base do
     Set
   }
 
-  alias Client.{Base, LinRead, Transaction}
-  alias Base.Response
+  alias Client.{LinRead, Transaction}
+  alias Client.Base.Response
 
   @type path :: bitstring
 

@@ -11,10 +11,6 @@ defmodule DgraphEx.Core.Alter do
     end
   end
 
-  def put_field(%__MODULE__{fields: prev_fields} = alter, %Field{} = field) do
-    %{alter | fields: [field | prev_fields]}
-  end
-
   @doc """
   Returns a DgraphEx.Core.Alter struct with the given fields (defaults to []).
 
@@ -27,6 +23,10 @@ defmodule DgraphEx.Core.Alter do
       %DgraphEx.Core.Alter{fields: [%DgraphEx.Core.Field{predicate: :name}]}
   """
   def new(fields \\ []) when is_list(fields), do: %__MODULE__{fields: fields}
+
+  def put_field(%__MODULE__{fields: prev_fields} = alter, %Field{} = field) do
+    %{alter | fields: [field | prev_fields]}
+  end
 
   @doc """
   Appends a Field struct to the fields (uh...) field of the alter struct.

@@ -12,13 +12,16 @@ defmodule DgraphEx.Client.Response do
             message: "",
             errors: []
 
+  @type message :: %{
+          code: bitstring,
+          message: bitstring
+        }
   @type error ::
           atom
           | bitstring
-          | %{
-              code: bitstring,
-              message: bitstring
-            }
+          | message
+          | {:dgraph_error, [message]}
+          | {:network_error, any}
   @type t :: %__MODULE__{
           data: map,
           extensions: map,
