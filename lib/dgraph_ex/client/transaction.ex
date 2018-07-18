@@ -24,7 +24,7 @@ defmodule DgraphEx.Client.Transaction do
   @doc false
   defguard is_id(txid) when is_integer(txid) and txid > 0
 
-  # def is_complete(%Tx{complete: complete}), do: complete
+  def is_complete(%Tx{complete: complete}), do: complete
 
   @doc """
   Concats a list of keys to the existing keys in the transaction's state

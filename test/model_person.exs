@@ -1,8 +1,8 @@
 defmodule DgraphEx.ModelPerson do
-  use DgraphEx.Vertex
+  use DgraphEx.Core.Vertex
   alias DgraphEx.ModelPerson, as: Person
   alias DgraphEx.ModelCompany, as: Company
-  alias DgraphEx.Changeset
+  alias DgraphEx.Core.Changeset
 
   vertex :person do
     field(:name, :string)

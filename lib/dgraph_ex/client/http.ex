@@ -12,9 +12,10 @@ defmodule DgraphEx.Client.HTTP do
   import DgraphEx.Util, only: [merge_keyword_lists: 2]
   alias Poison
 
-  alias DgraphEx.{
+  alias DgraphEx.Client
+
+  alias DgraphEx.Core.{
     Alter,
-    Client,
     Delete,
     Field,
     Kwargs,
@@ -26,7 +27,7 @@ defmodule DgraphEx.Client.HTTP do
   alias Client.{HTTP, LinRead, Transaction}
   alias Client.Base, as: ClientBase
   alias HTTP.Exec, as: DefaultExec
-  require Transaction
+  require Transaction, as: Tx
   require OK
 
   @behaviour ClientBase
@@ -148,7 +149,7 @@ defmodule DgraphEx.Client.HTTP do
 
   @spec abort(txid :: ClientBase.abort_input()) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
-  def abort(txid) when Transaction.is_id(txid) do
+  def abort(txid) when Tx.is_id(txid) do
     path = get_path(@abort_path, txid: txid)
     make_request(path, "")
   end
@@ -182,8 +183,7 @@ defmodule DgraphEx.Client.HTTP do
   @spec get_path(root :: bitstring, opts :: ClientBase.mutate_opts()) :: HTTPoison.url()
   defp get_path(root, [{:txid, -1} | _]), do: root
 
-  defp get_path(root, [{:txid, txid} | _])
-       when Transaction.is_id(txid) do
+  defp get_path(root, [{:txid, txid} | _]) when Tx.is_id(txid) do
     root <> "/" <> Integer.to_string(txid)
   end
 
@@ -194,14 +194,14 @@ defmodule DgraphEx.Client.HTTP do
   end
 
   defp get_mutate_headers([{:txid, txid}, {:commit_now, true} | _])
-       when Transaction.is_id(txid),
+       when Tx.is_id(txid),
        do: {:ok, %{@header_commitnow => true}}
 
   defp get_mutate_headers([{:txid, _}, {:commit_now, _} | _]) do
     {:error, :invalid_txid}
   end
 
-  @spec encode_keys(keys :: Transaction.keys()) :: {:ok, bitstring} | {:error, any}
+  @spec encode_keys(keys :: Tx.keys()) :: {:ok, bitstring} | {:error, any}
   defp encode_keys(keys) when is_list(keys), do: Poison.encode(keys)
   defp encode_keys(_keys), do: {:error, :invalid_keys}
 

@@ -1,7 +1,7 @@
 defmodule DgraphEx.Util do
   @moduledoc false
 
-  alias DgraphEx.Expr.Uid
+  alias DgraphEx.Core.Expr.Uid
 
   def as_rendered(value) do
     case value do
@@ -25,19 +25,18 @@ defmodule DgraphEx.Util do
     end
   end
 
-  def as_literal(value, type) do
-    case {type, value} do
-      {:int, v} when is_integer(v) -> {:ok, to_string(v)}
-      {:float, v} when is_float(v) -> {:ok, as_rendered(v)}
-      {:bool, v} when is_boolean(v) -> {:ok, as_rendered(v)}
-      {:string, v} when is_binary(v) -> {:ok, v |> strip_quotes |> wrap_quotes}
-      {:date, %Date{} = v} -> {:ok, as_rendered(v)}
-      {:datetime, %DateTime{} = v} -> {:ok, as_rendered(v)}
-      {:geo, v} when is_list(v) -> check_and_render_geo_numbers(v)
-      {:uid, v} when is_binary(v) -> {:ok, "<" <> v <> ">"}
-      _ -> {:error, {:invalidly_typed_value, value, type}}
-    end
-  end
+  def as_literal(value, :int) when is_integer(value), do: {:ok, to_string(value)}
+  def as_literal(value, :float) when is_float(value), do: {:ok, as_rendered(value)}
+  def as_literal(value, :bool) when is_boolean(value), do: {:ok, as_rendered(value)}
+
+  def as_literal(value, :string) when is_binary(value),
+    do: {:ok, value |> strip_quotes |> wrap_quotes}
+
+  def as_literal(%Date{} = value, :date), do: {:ok, as_rendered(value)}
+  def as_literal(%DateTime{} = value, :datetime), do: {:ok, as_rendered(value)}
+  def as_literal(value, :geo) when is_list(value), do: check_and_render_geo_numbers(value)
+  def as_literal(value, :uid) when is_binary(value), do: {:ok, "<" <> value <> ">"}
+  def as_literal(value, type), do: {:error, {:invalidly_typed_value, value, type}}
 
   def as_string(value) do
     value

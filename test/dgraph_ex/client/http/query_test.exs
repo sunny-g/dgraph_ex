@@ -2,6 +2,7 @@ defmodule DgraphEx.Client.HTTP.UnitTest.QueryTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.ExecMock
+
   alias DgraphEx.Client.HTTP
 
   describe "HTTP.query/1 and HTTP.query/2" do

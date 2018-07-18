@@ -2,6 +2,7 @@ defmodule DgraphEx.Client.HTTP.UnitTest.AlterTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.ExecMock
+
   alias DgraphEx.Client.HTTP
 
   describe "HTTP.alter/1" do

@@ -5,9 +5,10 @@ defmodule DgraphEx.Client.Base do
   Defines methods for making requests directly against Dgraph
   """
 
-  alias DgraphEx.{
+  alias DgraphEx.Client
+
+  alias DgraphEx.Core.{
     Alter,
-    Client,
     Delete,
     Field,
     Query,
@@ -31,7 +32,7 @@ defmodule DgraphEx.Client.Base do
           | module
           | [%Field{}]
           | %Alter{}
-  @type alter_opts :: [lin_read: LinRead.t()]
+  @type alter_opts :: []
   @type commit_input :: Transaction.keys()
   @type commit_opts :: [txid: Transaction.id()]
   @type mutate_input ::

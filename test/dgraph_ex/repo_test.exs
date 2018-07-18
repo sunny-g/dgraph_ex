@@ -3,7 +3,7 @@
 #   doctest DgraphEx.Repo
 
 #   alias DgraphEx.{Repo, Vertex, Changeset}
-#   alias DgraphEx.Expr.Uid
+#   alias DgraphEx.Core.Expr.Uid
 
 #   alias DgraphEx.ModelPerson, as: Person
 #   alias DgraphEx.ModelCompany, as: Company
@@ -171,7 +171,6 @@
 #     company = Repo.get(Company, "0x555555")
 #     assert company == nil
 #   end
-
 
 #   test "Repo.insert returns error tuple given an invalid changeset" do
 #     changes = %{}

@@ -2,6 +2,7 @@ defmodule DgraphEx.Client.HTTP.UnitTest.CommitTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.ExecMock
+
   alias DgraphEx.Client.HTTP
 
   describe "HTTP.commit/2" do

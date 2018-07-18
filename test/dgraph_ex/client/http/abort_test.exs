@@ -2,6 +2,7 @@ defmodule DgraphEx.Client.HTTP.UnitTest.AbortTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.ExecMock
+
   alias DgraphEx.Client.HTTP
 
   describe "HTTP.abort/1" do

@@ -1,6 +1,6 @@
 defmodule DgraphEx.Client.Response do
   @moduledoc """
-  Dgraph REST API response type
+  Dgraph API Response struct
   """
 
   alias DgraphEx.Client.Transaction
@@ -33,8 +33,8 @@ defmodule DgraphEx.Client.Response do
       extensions = response.extensions
       txn <- get_in_obj(extensions, [:txn])
 
-      txid = txn[:start_ts]
-      keys = txn[:keys]
+      txid = Map.get(txn, :start_ts)
+      keys = Map.get(txn, :keys, [])
       lin_read = get_in(txn, [:lin_read, :ids])
 
       tx = %Transaction{start_ts: txid, keys: keys, lin_read: lin_read}
