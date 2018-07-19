@@ -1,4 +1,4 @@
-defmodule DgraphEx.Repo.Client do
+defmodule DgraphEx.Client.Services.Client do
   @moduledoc """
   Agent for tracking a single Dgraph client's state
   """

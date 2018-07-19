@@ -1,9 +1,9 @@
-defmodule DgraphEx.Client.HTTP.UnitTest.AlterTest do
+defmodule DgraphEx.Client.Adapters.HTTP.UnitTest.AlterTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.RequestMock
 
-  alias DgraphEx.Client.HTTP
+  alias DgraphEx.Client.Adapters.HTTP
 
   describe "HTTP.alter/1" do
     setup :verify_on_exit!

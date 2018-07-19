@@ -1,9 +1,9 @@
-defmodule DgraphEx.Client.HTTP.UnitTest.MutateTest do
+defmodule DgraphEx.Client.Adapters.HTTP.UnitTest.MutateTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.RequestMock
 
-  alias DgraphEx.Client.HTTP
+  alias DgraphEx.Client.Adapters.HTTP
 
   describe "HTTP.mutate/2" do
     setup :verify_on_exit!

@@ -1,9 +1,9 @@
-defmodule DgraphEx.Client.HTTP.UnitTest.AbortTest do
+defmodule DgraphEx.Client.Adapters.HTTP.UnitTest.AbortTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.RequestMock
 
-  alias DgraphEx.Client.HTTP
+  alias DgraphEx.Client.Adapters.HTTP
 
   describe "HTTP.abort/1" do
     setup :verify_on_exit!

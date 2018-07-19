@@ -1,4 +1,4 @@
-defmodule DgraphEx.Client.HTTP.RequestBase do
+defmodule DgraphEx.Client.Adapters.HTTP.RequestBase do
   @moduledoc """
   Base behaviour for the main request function
   """

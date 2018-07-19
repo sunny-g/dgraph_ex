@@ -15,7 +15,7 @@ defmodule TestHelpers.RequestMock do
 
   use ExUnit.Case, async: true
   import Mox
-  alias DgraphEx.Client.HTTP.RequestMock
+  alias DgraphEx.Client.Adapters.HTTP.RequestMock
 
   def assert_exec_params({expected_path, expected_body, expected_headers}) do
     expect(RequestMock, :exec, fn path, body, headers ->

@@ -1,4 +1,6 @@
 defmodule DgraphEx.ModelPerson do
+  @moduledoc false
+
   use DgraphEx.Core.Vertex
   alias DgraphEx.ModelPerson, as: Person
   alias DgraphEx.ModelCompany, as: Company

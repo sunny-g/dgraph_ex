@@ -1,9 +1,10 @@
-defmodule DgraphEx.Repo.Transaction do
+defmodule DgraphEx.Client.Services.Transaction do
   @moduledoc false
 
   use GenServer
   alias DgraphEx.Client
-  alias Client.{Base, HTTP, LinRead, Response}
+  alias Client.Adapters.HTTP
+  alias Client.{HTTP, Response}
   alias Client.Transaction, as: Tx
   require OK
   require Tx

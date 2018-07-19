@@ -1,9 +1,9 @@
-defmodule DgraphEx.Client.HTTP.UnitTest.QueryTest do
+defmodule DgraphEx.Client.Adapters.HTTP.UnitTest.QueryTest do
   use ExUnit.Case, async: true
   import Mox
   import TestHelpers.RequestMock
 
-  alias DgraphEx.Client.HTTP
+  alias DgraphEx.Client.Adapters.HTTP
 
   describe "HTTP.query/1 and HTTP.query/2" do
     setup :verify_on_exit!

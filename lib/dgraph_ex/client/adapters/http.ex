@@ -1,4 +1,4 @@
-defmodule DgraphEx.Client.HTTP do
+defmodule DgraphEx.Client.Adapters.HTTP do
   @moduledoc """
   The HTTP Client for Dgraph (just makes the raw requests over REST)
 

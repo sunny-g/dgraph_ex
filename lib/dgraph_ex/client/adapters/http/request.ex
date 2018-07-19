@@ -1,4 +1,4 @@
-defmodule DgraphEx.Client.HTTP.Request do
+defmodule DgraphEx.Client.Adapters.HTTP.Request do
   @moduledoc """
   Just the HTTPoison client and main request function
 
@@ -6,8 +6,8 @@ defmodule DgraphEx.Client.HTTP.Request do
   """
 
   use HTTPoison.Base
-  alias DgraphEx.Client.{Base, HTTP, Response}
-  alias HTTP.RequestBase
+  alias DgraphEx.Client.{Adapters, Base, Response}
+  alias Adapters.HTTP.RequestBase
   alias Response
   require OK
 
