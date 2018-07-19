@@ -7,9 +7,11 @@ defmodule DgraphEx.Client.LinRead do
 
   @doc false
   @spec valid?(lin_read :: t) :: boolean
-  def valid?(%{} = lin_read) do
+  def valid?(lin_read) when is_map(lin_read) do
     Enum.all?(lin_read, fn {k, v} -> is_bitstring(k) and is_integer(v) end)
   end
+
+  def valid?(_), do: false
 
   @doc """
   Serializes the lin_read object to a JSON string

@@ -221,10 +221,6 @@ defmodule DgraphEx.Client.HTTP do
   defp encode_var_val(val) when is_integer(val), do: Integer.to_string(val)
   defp encode_var_val(val) when is_bitstring(val), do: val
 
-  @spec do_request(url :: bitstring, body :: bitstring, headers :: map) ::
-          {:ok, ClientBase.response()} | {:error, ClientBase.error()}
-  defp do_request(url, body, headers \\ %{}), do: @request.exec(url, body, headers)
-
   @spec make_request(url :: bitstring, body :: bitstring) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
   @spec make_request(url :: bitstring, body :: bitstring, headers :: map) ::
@@ -235,19 +231,26 @@ defmodule DgraphEx.Client.HTTP do
           headers :: map,
           opts :: ClientBase.send_opts()
         ) :: {:ok, ClientBase.response()} | {:error, ClientBase.error()}
-  defp make_request(url, body), do: do_request(url, body)
+  defp make_request(url, body), do: __do_request__(url, body)
 
   defp make_request(url, body, headers, opts \\ []) do
     case Keyword.get(opts, :lin_read, %{}) do
       lin_read when map_size(lin_read) == 0 ->
-        do_request(url, body, headers)
+        __do_request__(url, body, headers)
 
       lin_read ->
         OK.with do
           lin_read_string <- LinRead.encode(lin_read)
           headers = Map.merge(headers, %{@header_lin_read => lin_read_string})
-          do_request(url, body, headers)
+          __do_request__(url, body, headers)
         end
     end
+  end
+
+  @doc "Executes the underlying REST request against a mockable module"
+  @spec __do_request__(url :: bitstring, body :: bitstring, headers :: map) ::
+          {:ok, ClientBase.response()} | {:error, ClientBase.error()}
+  def __do_request__(url, body, headers \\ %{}) do
+    @request.exec(url, body, headers)
   end
 end

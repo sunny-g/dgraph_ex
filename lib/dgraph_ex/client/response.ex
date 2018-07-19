@@ -32,8 +32,9 @@ defmodule DgraphEx.Client.Response do
 
   @spec get_tx(res :: t()) :: {:ok, Transaction.t()} | {:error, :not_found}
   def get_tx(%__MODULE__{} = response) do
+    extensions = response.extensions
+
     OK.with do
-      extensions = response.extensions
       txn <- get_in_obj(extensions, [:txn])
 
       txid = Map.get(txn, :start_ts)
@@ -42,6 +43,14 @@ defmodule DgraphEx.Client.Response do
 
       tx = %Transaction{start_ts: txid, keys: keys, lin_read: lin_read}
       {:ok, tx}
+    end
+  end
+
+  @spec get_lin_read(res :: t()) :: {:ok, LinRead.t()} | {:error, :not_found}
+  def get_lin_read(%__MODULE__{} = response) do
+    OK.with do
+      %Transaction{lin_read: lin_read} <- get_tx(response)
+      {:ok, lin_read}
     end
   end
 
