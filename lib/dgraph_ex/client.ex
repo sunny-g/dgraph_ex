@@ -26,11 +26,12 @@ defmodule DgraphEx.Client do
   """
 
   use Supervisor
-  alias DgraphEx.{Client, Repo}
-  alias Client.{Base, HTTP, Response}
+  alias DgraphEx.Client
+  alias Client.{Adapters, Base, Services}
+  alias Adapters.HTTP
   alias Client.Transaction, as: Tx
-  alias Repo.Client, as: RepoClient
-  alias Repo.Transaction, as: RepoTx
+  alias Services.Client, as: ClientService
+  alias Services.Transaction, as: TxService
   require OK
   require Tx
 
@@ -52,7 +53,7 @@ defmodule DgraphEx.Client do
   @spec new_transaction() :: {:ok, Tx.id()} | {:error, any}
   def new_transaction() do
     OK.with do
-      {txid, lin_read} <- RepoClient.new_transaction()
+      {txid, lin_read} <- ClientService.new_transaction()
       tx_spec = new_transaction_spec(txid, lin_read)
       _pid <- Supervisor.start_child(__MODULE__, tx_spec)
       {:ok, txid}
@@ -73,21 +74,21 @@ defmodule DgraphEx.Client do
   """
   @spec mutate(txid :: Tx.id(), mutation :: Base.mutate_input(), commit_now :: boolean) ::
           {:ok, Base.response()} | {:error, Base.error()}
-  def mutate(txid, mutation, commit_now \\ false) when Tx.is_id(txid) do
+  def mutate(txid, mutation, commit_now \\ false) do
     name = via_tuple(txid)
+    lin_read = TxService.get_lin_read(name)
+    opts = [txid: txid, commit_now: commit_now, lin_read: lin_read]
 
     OK.with do
-      lin_read <- RepoTx.get_lin_read(name)
-      opts = [txid: txid, commit_now: commit_now, lin_read: lin_read]
       res <- @adapter.mutate(mutation, opts)
-      res <- update(name, res)
+      _ <- update(name, res)
       {:ok, res}
     else
-      {:error, {:dgraph_error, errors}} ->
-        abort(name)
+      {:dgraph_error, errors} ->
+        abort(txid)
         {:error, {:dgraph_error, errors}}
 
-      {:error, reason} ->
+      reason ->
         {:error, reason}
     end
   end
@@ -97,11 +98,14 @@ defmodule DgraphEx.Client do
   """
   @spec query(txid :: Tx.id(), query :: Base.query_input()) ::
           {:ok, Base.response()} | {:error, Base.error()}
-  def query(name, query_input) do
+  def query(txid, query_input) do
+    name = via_tuple(txid)
+    lin_read = TxService.get_lin_read(name)
+    opts = [lin_read: lin_read]
+
     OK.with do
-      lin_read <- RepoTx.get_lin_read(name)
-      res <- @adapter.query(query_input, lin_read: lin_read)
-      res <- update(name, res)
+      res <- @adapter.query(query_input, opts)
+      _ <- update(name, res)
       {:ok, res}
     end
   end
@@ -115,7 +119,8 @@ defmodule DgraphEx.Client do
 
     OK.with do
       res <- @adapter.abort(txid)
-      Tx.teardown(name)
+      _ <- TxService.teardown(name)
+      {:ok, res}
     end
   end
 
@@ -123,11 +128,12 @@ defmodule DgraphEx.Client do
   @spec commit(txid :: Tx.id()) :: {:ok, Base.response()} | {:error, Base.error()}
   def commit(txid) do
     name = via_tuple(txid)
+    keys = TxService.get_keys(name)
 
     OK.with do
-      keys <- RepoTx.get_keys(name)
       res <- @adapter.commit(keys, txid: txid)
-      RepoTx.teardown(name)
+      _ <- TxService.teardown(name)
+      {:ok, res}
     end
   end
 
@@ -145,16 +151,17 @@ defmodule DgraphEx.Client do
        when Tx.is_id(txid)
        when is_map(lin_read) do
     args = [name: via_tuple(txid), lin_read: lin_read]
-    opts = [id: {RepoTx, txid}] ++ @default_tx_child_spec_opts
-    Supervisor.child_spec({RepoTx, args}, opts)
+    opts = [id: {TxService, txid}] ++ @default_tx_child_spec_opts
+    Supervisor.child_spec({TxService, args}, opts)
   end
 
-  @spec update(tx_name :: RepoTx.name(), response :: Base.response()) ::
+  @spec update(tx_name :: TxService.name(), response :: Base.response()) ::
           {:ok, Base.response()} | {:error, Base.error()}
-  defp update(tx_name, %Response{} = response) do
+  defp update(tx_name, response) do
     OK.with do
-      response <- RepoClient.update(response)
-      response <- RepoTx.update(tx_name, response)
+      _ <- ClientService.update(response)
+      _ <- TxService.update(tx_name, response)
+      {:ok, response}
     end
   end
 

@@ -2,18 +2,17 @@ defmodule DgraphEx.Client.Transaction do
   @moduledoc false
 
   alias DgraphEx.Client.LinRead
-  alias DgraphEx.Client.Transaction, as: Tx
   require OK
 
-  defstruct lin_read: %{},
+  defstruct lin_read: LinRead.new(),
             keys: [],
             start_ts: 0
 
   @type id :: non_neg_integer
   @type key :: String.t()
   @type keys :: [key]
-  @type update :: {keys :: Tx.key() | Tx.keys(), lin_read :: LinRead.t()}
-  @type t :: %Tx{
+  @type update :: {keys :: key() | keys(), lin_read :: LinRead.t()}
+  @type t :: %__MODULE__{
           lin_read: LinRead.t(),
           keys: keys(),
           start_ts: id()
@@ -26,13 +25,13 @@ defmodule DgraphEx.Client.Transaction do
   Concats a list of keys to the existing keys in the transaction's state
   """
   @spec add_keys(state :: t, keys :: key | [key]) :: t
-  def add_keys(%Tx{} = state, new_key)
+  def add_keys(%__MODULE__{} = state, new_key)
       when is_bitstring(new_key),
       do: add_keys(state, [new_key])
 
-  def add_keys(%Tx{keys: keys} = state, new_keys)
+  def add_keys(%__MODULE__{keys: keys} = state, new_keys)
       when is_list(new_keys) do
-    %Tx{state | keys: keys ++ new_keys}
+    %__MODULE__{state | keys: keys ++ new_keys}
   end
 
   @doc """
@@ -40,11 +39,11 @@ defmodule DgraphEx.Client.Transaction do
   """
   @spec merge_lin_reads(state :: t, lin_read: LinRead.t()) ::
           {:ok, t} | {:error, :invalid_lin_read}
-  def merge_lin_reads(%Tx{lin_read: lin_read} = state, %{} = new_lin_read) do
+  def merge_lin_reads(%__MODULE__{lin_read: target} = state, %{} = source) do
     OK.with do
-      new_lin_read <- LinRead.merge_lin_reads(lin_read, new_lin_read)
-      state = %Tx{state | lin_read: new_lin_read}
-      {:ok, state}
+      new_lin_read <- LinRead.merge_lin_reads(target, source)
+      new_state = %__MODULE__{state | lin_read: new_lin_read}
+      {:ok, new_state}
     end
   end
 
@@ -55,11 +54,11 @@ defmodule DgraphEx.Client.Transaction do
   response
   """
   @spec update(state :: t(), new_tx :: t()) :: {:ok, t()} | {:error, :invalid_lin_read}
-  def update(%Tx{start_ts: txid}, %Tx{start_ts: new_txid})
+  def update(%__MODULE__{start_ts: txid}, %__MODULE__{start_ts: new_txid})
       when txid != new_txid,
       do: {:error, :txid_mismatch}
 
-  def update(%Tx{} = state, %Tx{keys: keys, lin_read: new_lin_read}) do
+  def update(%__MODULE__{} = state, %__MODULE__{keys: keys, lin_read: new_lin_read}) do
     state
     |> add_keys(keys)
     |> merge_lin_reads(new_lin_read)

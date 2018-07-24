@@ -2,7 +2,10 @@ defmodule DgraphEx.Client.Base do
   @moduledoc """
   The base Dgraph Client behaviour
 
-  Defines methods for making requests directly against Dgraph
+  Defines methods for making requests directly against Dgraph. This behaviour
+  describes the interface of a Dgraph client adapter (i.e., the module that
+  actually communicates with Dgraph over HTTP or gRPC) and the higher-level
+  client that this library's consumers will use.
   """
 
   alias DgraphEx.Client

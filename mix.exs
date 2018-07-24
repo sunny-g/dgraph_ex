@@ -46,7 +46,7 @@ defmodule DgraphEx.Mixfile do
   defp deps do
     [
       {:httpoison, "~> 0.12.0"},
-      {:ok, "~> 1.11"},
+      {:ok, github: "sunny-g/ok"},
       {:poison, "~> 3.1"},
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.7.2", only: :test},
@@ -73,6 +73,6 @@ defmodule DgraphEx.Mixfile do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["test/support", "lib"]
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 end

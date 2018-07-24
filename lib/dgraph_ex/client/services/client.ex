@@ -19,10 +19,7 @@ defmodule DgraphEx.Client.Services.Client do
   @spec start_link(initial_lin_read :: LinRead.t()) :: Agent.on_start()
   def start_link(initial_lin_read \\ %{}) when is_map(initial_lin_read) do
     Agent.start_link(
-      __MODULE__,
-      fn ->
-        %__MODULE__{lin_read: initial_lin_read}
-      end,
+      fn -> %__MODULE__{lin_read: initial_lin_read} end,
       name: __MODULE__
     )
   end
@@ -47,8 +44,7 @@ defmodule DgraphEx.Client.Services.Client do
   Given a Dgraph.Client.Response struct, update the client's state (namely,
   it's `lin_read` map) and return {:ok, nil}
   """
-  @spec update(response :: Base.response()) ::
-          {:ok, Base.response()} | {:error, Base.error() | :cannot_update_client_state}
+  @spec update(response :: Base.response()) :: {:ok, Base.response()} | {:error, Base.error()}
   def update(response) do
     OK.with do
       new_lin_read <- Response.get_lin_read(response)
@@ -68,7 +64,7 @@ defmodule DgraphEx.Client.Services.Client do
 
       {:ok, response}
     else
-      {:error, _} ->
+      _ ->
         {:error, :cannot_update_client_state}
     end
   end

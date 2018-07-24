@@ -4,7 +4,7 @@ defmodule DgraphEx.Client.Services.Transaction do
   use GenServer
   alias DgraphEx.Client
   alias Client.Adapters.HTTP
-  alias Client.{HTTP, Response}
+  alias Client.{LinRead, Response}
   alias Client.Transaction, as: Tx
   require OK
   require Tx
@@ -27,11 +27,11 @@ defmodule DgraphEx.Client.Services.Transaction do
   end
 
   @doc false
-  @spec get_keys(name :: name()) :: {:ok, Tx.keys()}
+  @spec get_keys(name :: name()) :: Tx.keys()
   def get_keys(name), do: GenServer.call(name, :get_keys)
 
   @doc false
-  @spec get_lin_read(name :: name()) :: {:ok, LinRead.t()}
+  @spec get_lin_read(name :: name()) :: LinRead.t()
   def get_lin_read(name), do: GenServer.call(name, :get_lin_read)
 
   @doc """
@@ -46,16 +46,15 @@ defmodule DgraphEx.Client.Services.Transaction do
       nil <- GenServer.call(name, {:update_tx, tx})
       {:ok, response}
     else
-      {:error, _} ->
+      _ ->
         {:error, :cannot_update_tx_state}
     end
   end
 
-  def teardown({:via, _, {_, txid}} = name) do
-    case GenServer.stop(name, :normal) do
-      :ok -> {:ok, nil}
-      _ -> {:error, {:cannot_teardown_transaction, txid}}
-    end
+  @spec teardown(name :: name()) :: {:ok, nil}
+  def teardown(name) do
+    :ok = GenServer.stop(name, :normal)
+    {:ok, nil}
   end
 
   ##############################################################################

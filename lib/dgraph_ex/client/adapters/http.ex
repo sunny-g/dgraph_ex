@@ -22,7 +22,8 @@ defmodule DgraphEx.Client.Adapters.HTTP do
     Vertex
   }
 
-  alias Client.{HTTP, LinRead, Transaction}
+  alias Client.{LinRead, Transaction}
+  alias Client.Adapters.{HTTP}
   alias Client.Base, as: ClientBase
   alias HTTP.Request, as: DefaultRequest
   alias Poison
@@ -49,9 +50,9 @@ defmodule DgraphEx.Client.Adapters.HTTP do
   defguard are_query_vars(vars)
            when (is_map(vars) and map_size(vars) > 0) or is_list(vars)
 
+  @impl true
   @spec alter(alteration :: ClientBase.alter_input()) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
-
   def alter(:drop_all), do: alter(~s({"drop_all":true}))
 
   def alter({:drop_attr, attr}) when is_atom(attr) do
@@ -87,6 +88,7 @@ defmodule DgraphEx.Client.Adapters.HTTP do
 
   def alter(_), do: {:error, :invalid_alteration}
 
+  @impl true
   @spec mutate(mutation :: ClientBase.mutate_input(), opts :: ClientBase.mutate_opts()) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
   def mutate(%Set{} = mutation, opts) do
@@ -115,6 +117,7 @@ defmodule DgraphEx.Client.Adapters.HTTP do
 
   def mutate(_, _), do: {:error, :invalid_mutation}
 
+  @impl true
   @spec query(query :: ClientBase.query_input(), opts :: ClientBase.query_opts()) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
   def query(query, opts \\ [])
@@ -146,6 +149,7 @@ defmodule DgraphEx.Client.Adapters.HTTP do
 
   def query(_, _), do: {:error, :invalid_query}
 
+  @impl true
   @spec abort(txid :: ClientBase.abort_input()) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
   def abort(txid) when Tx.is_id(txid) do
@@ -155,6 +159,7 @@ defmodule DgraphEx.Client.Adapters.HTTP do
 
   def abort(_), do: {:error, :invalid_txid}
 
+  @impl true
   @spec commit(
           keys :: ClientBase.commit_input(),
           opts :: ClientBase.commit_opts()
@@ -196,9 +201,7 @@ defmodule DgraphEx.Client.Adapters.HTTP do
        when Tx.is_id(txid),
        do: {:ok, %{@header_commitnow => true}}
 
-  defp get_mutate_headers([{:txid, _}, {:commit_now, _} | _]) do
-    {:error, :invalid_txid}
-  end
+  defp get_mutate_headers(_), do: {:error, :invalid_txid}
 
   @spec encode_keys(keys :: Tx.keys()) :: {:ok, bitstring} | {:error, any}
   defp encode_keys(keys) when is_list(keys), do: Poison.encode(keys)

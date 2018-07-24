@@ -38,21 +38,15 @@ defmodule DgraphEx.Client.Adapters.HTTP.Request do
   @spec process_response(res :: %HTTPoison.Response{}) ::
           {:ok, Base.response()} | {:error, Base.error()}
   defp process_response(%HTTPoison.Response{body: body}) do
-    response =
-      OK.with do
-        parsed_body <- Poison.decode(body)
-        Map.merge(%Response{}, parsed_body)
-      end
-
-    case response do
-      {:ok, %Response{errors: []}} ->
+    case Poison.decode(body, as: %Response{}) do
+      {:ok, response = %Response{errors: []}} ->
         {:ok, response}
 
       {:ok, %Response{errors: errors}} ->
         {:error, {:dgraph_error, errors}}
 
-      {:error, reason} ->
-        {:error, reason}
+      _ ->
+        {:error, :cannot_process_response}
     end
   end
 
