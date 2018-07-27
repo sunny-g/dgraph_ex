@@ -8,20 +8,32 @@ defmodule DgraphEx.Core.SetTest do
   alias DgraphEx.ModelCompany, as: Company
 
   test "render set with a model" do
-    assert "{\n  set {\n    _:person <name> \"Bleeeeeeeeeeeigh\"^^<xs:string> .\n    _:person <age> \"21\"^^<xs:int> .\n  }\n}" ==
-             %Person{
-               age: 21,
-               name: "Bleeeeeeeeeeeigh"
-             }
-             |> set()
-             |> render()
+    assert %Person{age: 21, name: "Bleeeeeeeeeeeigh"}
+           |> set()
+           |> render()
+           |> clean_format() ==
+             clean_format("""
+               {
+                 set {
+                   _:person <name> "Bleeeeeeeeeeeigh"^^<xs:string> .
+                   _:person <age> "21"^^<xs:int> .
+                 }
+               }
+             """)
   end
 
   test "render mutation set" do
-    assert "{\n  set {\n    _:person <name> \"Jason\"^^<xs:string> .\n  }\n}" ==
-             set()
-             |> field(:person, :name, "Jason", :string)
-             |> render
+    assert set()
+           |> field(:person, :name, "Jason", :string)
+           |> render()
+           |> clean_format() ==
+             clean_format("""
+               {
+                 set {
+                   _:person <name> "Jason"^^<xs:string> .
+                 }
+               }
+             """)
   end
 
   test "render mutation set can handle a nested model" do

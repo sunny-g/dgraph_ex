@@ -1,28 +1,7 @@
 defmodule DgraphEx.Client do
   @moduledoc """
-  GenServer that tracks client and transaction state for client-server
+  Supervisor that tracks client and transaction state for client-server
   linearizability
-
-
-  get client state
-  create new transaction state by incrementing client state
-  wrap alter, mutate and query, passing in client state
-  pass altered functions into func
-  call func within a task
-  call either commit or rollback when done
-
-  spec =
-  DynamicSupervisor.start_child(__MODULE__, child_spec)
-
-  stub = %{
-    alter: &alter(&1),
-    mutate: &mutate(&1),
-    query: &query(&1),
-    rollback: &rollback(&1),
-  }
-
-  func.()
-  {:ok, nil}
   """
 
   use Supervisor
@@ -42,7 +21,10 @@ defmodule DgraphEx.Client do
   @registry_name :dgraph_ex_transaction_registry
   @registry_spec {Registry, [keys: :unique, name: @registry_name]}
   @client_spec {Repo.Client, [@initial_lin_read]}
-  @initial_children [@registry_spec, @client_spec]
+  @initial_children [
+    @registry_spec,
+    @client_spec
+  ]
 
   @spec start_link(_ :: any) :: Supervisor.on_start()
   def start_link(_) do
@@ -141,7 +123,7 @@ defmodule DgraphEx.Client do
   # PRIVATE
   ##############################################################################
 
-  @spec via_tuple(txid :: Tx.id()) :: Tx.name()
+  @spec via_tuple(txid :: Tx.id()) :: TxService.name()
   defp via_tuple(txid) when Tx.is_id(txid) do
     {:via, Registry, {@registry_name, txid}}
   end

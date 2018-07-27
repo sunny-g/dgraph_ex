@@ -1,4 +1,8 @@
+ExUnit.configure(exclude: [:integration])
 ExUnit.start()
+
+Code.load_file("./test/model_company.exs")
+Code.load_file("./test/model_person.exs")
 
 defmodule TestHelpers do
   @moduledoc false
@@ -26,6 +30,3 @@ defmodule TestHelpers.RequestMock do
     end)
   end
 end
-
-Code.load_file("./test/model_company.exs")
-Code.load_file("./test/model_person.exs")

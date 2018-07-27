@@ -1,5 +1,7 @@
 defmodule DgraphEx.Examples.Land do
-  use DgraphEx.Vertex
+  @moduledoc false
+
+  use DgraphEx.Core.Vertex
   alias DgraphEx.Examples.{Land, Person}
 
   vertex :land do
@@ -32,7 +34,6 @@ defmodule DgraphEx.Examples.Land do
     geo_center
     geo_border
   )a
-  
 
   def land_example() do
     %Land{
@@ -50,6 +51,4 @@ defmodule DgraphEx.Examples.Land do
       }
     }
   end
-
-
 end
