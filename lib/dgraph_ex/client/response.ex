@@ -6,10 +6,11 @@ defmodule DgraphEx.Client.Response do
   alias DgraphEx.Client.Transaction
   require OK
 
-  defstruct data: nil,
-            extensions: %{},
+  defstruct data: %{},
             code: "",
             message: "",
+            uids: %{},
+            extensions: %{},
             errors: []
 
   @type message :: %{
@@ -24,9 +25,10 @@ defmodule DgraphEx.Client.Response do
           | {:network_error, any}
   @type t :: %__MODULE__{
           data: map,
-          extensions: map,
           code: bitstring,
           message: bitstring,
+          uids: map,
+          extensions: map,
           errors: [error]
         }
 
@@ -41,12 +43,12 @@ defmodule DgraphEx.Client.Response do
   @spec get_tx(res :: t()) :: {:ok, Transaction.t()} | {:error, :not_found}
   def get_tx(%__MODULE__{} = response) do
     OK.with do
-      txn <- get_in_obj(response.extensions, [:txn])
-      lin_read <- get_in_obj(txn, [:lin_read, :ids])
+      txn <- get_in_obj(response.extensions, ["txn"])
+      lin_read <- get_in_obj(txn, ["lin_read", "ids"])
 
       tx = %Transaction{
-        start_ts: Map.get(txn, :start_ts),
-        keys: Map.get(txn, :keys, []),
+        start_ts: Map.get(txn, "start_ts"),
+        keys: Map.get(txn, "keys", []),
         lin_read: lin_read
       }
 

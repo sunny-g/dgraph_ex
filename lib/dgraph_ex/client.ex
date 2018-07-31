@@ -5,8 +5,9 @@ defmodule DgraphEx.Client do
   """
 
   use Supervisor
-  alias DgraphEx.Client
+  alias DgraphEx.{Client, Core}
   alias Client.{Adapters, Base, Services}
+  alias Core.Vertex
   alias Adapters.HTTP
   alias Client.Transaction, as: Tx
   alias Services.Client, as: ClientService
@@ -18,28 +19,24 @@ defmodule DgraphEx.Client do
   @initial_lin_read Application.get_env(:dgraph_ex, :lin_read, %{})
   @adapter Application.get_env(:dgraph_ex, :adapter, HTTP)
 
-  @registry_name :dgraph_ex_transaction_registry
   @registry_spec {Registry, [keys: :unique, name: @registry_name]}
-  @client_spec {Repo.Client, [@initial_lin_read]}
+  @client_spec {ClientService, @initial_lin_read}
   @initial_children [
     @registry_spec,
     @client_spec
   ]
 
   @spec start_link(_ :: any) :: Supervisor.on_start()
-  def start_link(_) do
+  def start_link(_ \\ []) do
     Supervisor.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
   @doc false
   @spec new_transaction() :: {:ok, Tx.id()} | {:error, any}
   def new_transaction() do
-    OK.with do
-      {txid, lin_read} <- ClientService.new_transaction()
-      tx_spec = new_transaction_spec(txid, lin_read)
-      _pid <- Supervisor.start_child(__MODULE__, tx_spec)
-      {:ok, txid}
-    end
+    lin_read = ClientService.get_lin_read()
+    tx_spec = new_transaction_spec(lin_read)
+    Supervisor.start_child(__MODULE__, tx_spec)
   end
 
   @doc """
@@ -54,21 +51,23 @@ defmodule DgraphEx.Client do
   If the mutation results in a Dgraph error, the transaction is aborted and the
   return value is the original mutation error
   """
-  @spec mutate(txid :: Tx.id(), mutation :: Base.mutate_input(), commit_now :: boolean) ::
+  @spec mutate(tx_pid :: pid(), mutation :: Base.mutate_input(), Base.mutate_opts()) ::
           {:ok, Base.response()} | {:error, Base.error()}
-  def mutate(txid, mutation, commit_now \\ false) do
-    name = via_tuple(txid)
-    lin_read = TxService.get_lin_read(name)
+  def mutate(tx_pid, mutation, opts \\ [commit_now: false])
+  def mutate(tx_pid, mutation, commit_now: commit_now) do
+    txid = TxService.get_txid(tx_pid)
+    lin_read = TxService.get_lin_read(tx_pid)
     opts = [txid: txid, commit_now: commit_now, lin_read: lin_read]
 
     OK.with do
       res <- @adapter.mutate(mutation, opts)
-      _ <- update(name, res)
+      _ <- update(tx_pid, res)
       {:ok, res}
     else
-      {:dgraph_error, errors} ->
-        abort(txid)
-        {:error, {:dgraph_error, errors}}
+      reason = {:dgraph_error, errors} ->
+        IO.warn("failed to mutate, aborting transaction #{txid} with errors #{Enum.map(errors, &Poison.encode!/1)}")
+        abort(tx_pid)
+        {:error, reason}
 
       reason ->
         {:error, reason}
@@ -78,16 +77,15 @@ defmodule DgraphEx.Client do
   @doc """
   Executes a query within a transaction
   """
-  @spec query(txid :: Tx.id(), query :: Base.query_input()) ::
+  @spec query(tx_pid :: pid(), query :: Base.query_input()) ::
           {:ok, Base.response()} | {:error, Base.error()}
-  def query(txid, query_input) do
-    name = via_tuple(txid)
-    lin_read = TxService.get_lin_read(name)
+  def query(tx_pid, query_input) do
+    lin_read = TxService.get_lin_read(tx_pid)
     opts = [lin_read: lin_read]
 
     OK.with do
       res <- @adapter.query(query_input, opts)
-      _ <- update(name, res)
+      _ <- update(tx_pid, res)
       {:ok, res}
     end
   end
@@ -95,26 +93,26 @@ defmodule DgraphEx.Client do
   @doc """
   Aborts
   """
-  @spec abort(txid :: Tx.id()) :: {:ok, Base.response()} | {:error, Base.error()}
-  def abort(txid) do
-    name = via_tuple(txid)
+  @spec abort(tx_pid :: pid()) :: {:ok, Base.response()} | {:error, Base.error()}
+  def abort(tx_pid) do
+    txid = TxService.get_txid(tx_pid)
 
     OK.with do
       res <- @adapter.abort(txid)
-      _ <- TxService.teardown(name)
+      _ <- TxService.teardown(tx_pid)
       {:ok, res}
     end
   end
 
   @doc false
-  @spec commit(txid :: Tx.id()) :: {:ok, Base.response()} | {:error, Base.error()}
-  def commit(txid) do
-    name = via_tuple(txid)
-    keys = TxService.get_keys(name)
+  @spec commit(tx_pid :: pid()) :: {:ok, Base.response()} | {:error, Base.error()}
+  def commit(tx_pid) do
+    txid = TxService.get_txid(tx_pid)
+    keys = TxService.get_keys(tx_pid)
 
     OK.with do
       res <- @adapter.commit(keys, txid: txid)
-      _ <- TxService.teardown(name)
+      _ <- TxService.teardown(tx_pid)
       {:ok, res}
     end
   end
@@ -123,26 +121,18 @@ defmodule DgraphEx.Client do
   # PRIVATE
   ##############################################################################
 
-  @spec via_tuple(txid :: Tx.id()) :: TxService.name()
-  defp via_tuple(txid) when Tx.is_id(txid) do
-    {:via, Registry, {@registry_name, txid}}
+  @spec new_transaction_spec(lin_read :: LinRead.t()) :: any
+  defp new_transaction_spec(lin_read) when is_map(lin_read) do
+    args = [lin_read: lin_read]
+    Supervisor.child_spec({TxService, args}, @default_tx_child_spec_opts)
   end
 
-  @spec new_transaction_spec(txid :: Tx.id(), lin_read :: LinRead.t()) :: any
-  defp new_transaction_spec(txid, lin_read)
-       when Tx.is_id(txid)
-       when is_map(lin_read) do
-    args = [name: via_tuple(txid), lin_read: lin_read]
-    opts = [id: {TxService, txid}] ++ @default_tx_child_spec_opts
-    Supervisor.child_spec({TxService, args}, opts)
-  end
-
-  @spec update(tx_name :: TxService.name(), response :: Base.response()) ::
+  @spec update(tx_pid :: pid(), response :: Base.response()) ::
           {:ok, Base.response()} | {:error, Base.error()}
-  defp update(tx_name, response) do
+  defp update(tx_pid, response) do
     OK.with do
       _ <- ClientService.update(response)
-      _ <- TxService.update(tx_name, response)
+      _ <- TxService.update(tx_pid, response)
       {:ok, response}
     end
   end

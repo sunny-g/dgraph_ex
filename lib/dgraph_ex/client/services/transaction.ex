@@ -1,5 +1,7 @@
 defmodule DgraphEx.Client.Services.Transaction do
-  @moduledoc false
+  @moduledoc """
+  GenServer for tracking a single Dgraph transaction's state
+  """
 
   use GenServer
   alias DgraphEx.Client
@@ -10,7 +12,7 @@ defmodule DgraphEx.Client.Services.Transaction do
   require Tx
 
   @type name :: {:via, module, {module, Tx.id()}}
-  @type start_opts :: [name: name(), lin_read: LinRead.t()]
+  @type start_opts :: [lin_read: LinRead.t()]
 
   @adapter Application.get_env(:dgraph_ex, :adapter, HTTP)
 
@@ -22,38 +24,45 @@ defmodule DgraphEx.Client.Services.Transaction do
   Spawns a new Transaction process
   """
   @spec start_link(opts :: start_opts()) :: GenServer.on_start()
-  def start_link(name: {:via, _, {_, txid}} = name, lin_read: lin_read) do
-    GenServer.start_link(__MODULE__, {txid, lin_read}, name: name)
+  def start_link(lin_read: lin_read) do
+    GenServer.start_link(__MODULE__, lin_read)
   end
 
   @doc false
-  @spec get_keys(name :: name()) :: Tx.keys()
-  def get_keys(name), do: GenServer.call(name, :get_keys)
+  @spec get_txid(pid :: pid()) :: Tx.id()
+  def get_txid(pid), do: GenServer.call(pid, :get_txid)
 
   @doc false
-  @spec get_lin_read(name :: name()) :: LinRead.t()
-  def get_lin_read(name), do: GenServer.call(name, :get_lin_read)
+  @spec get_keys(pid :: pid()) :: Tx.keys()
+  def get_keys(pid), do: GenServer.call(pid, :get_keys)
+
+  @doc false
+  @spec get_lin_read(pid :: pid()) :: LinRead.t()
+  def get_lin_read(pid), do: GenServer.call(pid, :get_lin_read)
 
   @doc """
   Given a Dgraph.Client.Response struct, update the transaction's state
   (namely, it's `lin_read` map)
   """
-  @spec update(name :: name(), response :: Base.response()) ::
+  @spec update(pid :: pid(), response :: Base.response()) ::
           {:ok, Base.response()} | {:error, Base.error() | :cannot_update_tx_state}
-  def update(name, %Response{} = response) do
+  def update(pid, %Response{} = response) do
     OK.with do
       tx <- Response.get_tx(response)
-      nil <- GenServer.call(name, {:update_tx, tx})
+      nil <- GenServer.call(pid, {:update_tx, tx})
       {:ok, response}
     else
+      :not_found ->
+        {:ok, response}
+
       _ ->
         {:error, :cannot_update_tx_state}
     end
   end
 
-  @spec teardown(name :: name()) :: {:ok, nil}
-  def teardown(name) do
-    :ok = GenServer.stop(name, :normal)
+  @spec teardown(pid :: pid()) :: {:ok, nil}
+  def teardown(pid) do
+    :ok = GenServer.stop(pid, :normal)
     {:ok, nil}
   end
 
@@ -62,21 +71,20 @@ defmodule DgraphEx.Client.Services.Transaction do
   ##############################################################################
 
   @impl true
-  def init({txid, %{} = lin_read}) do
-    cond do
-      not Tx.is_id(txid) ->
-        {:stop, :invalid_txid}
-
-      not (is_map(lin_read) and LinRead.valid?(lin_read)) ->
-        {:stop, :invalid_lin_read}
-
-      true ->
-        Process.flag(:trap_exit, true)
-        {:ok, %Tx{start_ts: txid, lin_read: lin_read}}
+  def init(%{} = lin_read) do
+    if LinRead.valid?(lin_read) do
+      Process.flag(:trap_exit, true)
+      {:ok, %Tx{lin_read: lin_read}}
+    else
+      {:stop, :invalid_lin_read}
     end
   end
 
   @impl true
+  def handle_call(:get_txid, _from, %Tx{start_ts: txid} = state) do
+    {:reply, txid, state}
+  end
+
   def handle_call(:get_keys, _from, %Tx{keys: keys} = state) do
     {:reply, keys, state}
   end

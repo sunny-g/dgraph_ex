@@ -11,6 +11,7 @@ defmodule DgraphEx.Mixfile do
       deps: deps(),
       package: package(),
       description: description(),
+      aliases: aliases(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -73,6 +74,28 @@ defmodule DgraphEx.Mixfile do
     ]
   end
 
+  defp aliases() do
+    [
+      {:"test.all", [&test_unit/1, &test_integration/1]},
+      {:"test.integration", [&test_integration/1]},
+      {:"test.unit", [&test_unit/1]}
+    ]
+  end
+
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp test_unit(_) do
+    Mix.shell.cmd(
+      "mix test --exclude integration --color",
+      env: [{"MIX_ENV", "test"}]
+    )
+  end
+
+  defp test_integration(_) do
+    Mix.shell.cmd(
+      "mix test --only integration --color",
+      env: [{"MIX_ENV", "test"}]
+    )
+  end
 end

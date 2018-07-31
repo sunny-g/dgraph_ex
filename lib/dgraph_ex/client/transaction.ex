@@ -19,7 +19,7 @@ defmodule DgraphEx.Client.Transaction do
         }
 
   @doc false
-  defguard is_id(txid) when is_integer(txid) and txid > 0
+  defguard is_id(txid) when is_integer(txid) and txid >= 0
 
   @doc """
   Concats a list of keys to the existing keys in the transaction's state
@@ -54,6 +54,10 @@ defmodule DgraphEx.Client.Transaction do
   response
   """
   @spec update(state :: t(), new_tx :: t()) :: {:ok, t()} | {:error, :invalid_lin_read}
+  def update(%__MODULE__{start_ts: 0} = state, %__MODULE__{start_ts: txid} = new_tx) do
+    update(%__MODULE__{state | start_ts: txid}, new_tx)
+  end
+
   def update(%__MODULE__{start_ts: txid}, %__MODULE__{start_ts: new_txid})
       when txid != new_txid,
       do: {:error, :txid_mismatch}

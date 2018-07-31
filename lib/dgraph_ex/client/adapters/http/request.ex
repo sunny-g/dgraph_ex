@@ -34,23 +34,42 @@ defmodule DgraphEx.Client.Adapters.HTTP.Request do
     end
   end
 
-  @doc false
+  @doc """
+  Transforms an HTTPoison.Response struct into a Response struct result tuple
+  """
   @spec process_response(res :: %HTTPoison.Response{}) ::
           {:ok, Base.response()} | {:error, Base.error()}
-  defp process_response(%HTTPoison.Response{body: body}) do
-    case Poison.decode(body, as: %Response{}) do
-      {:ok, response = %Response{errors: []}} ->
-        {:ok, response}
+  def process_response(%HTTPoison.Response{body: body}) do
+    case Poison.decode(body) do
+      {:ok, response} ->
+        case Map.get(response, "errors", []) do
+          [] ->
+            {:ok, from_response(response)}
 
-      {:ok, %Response{errors: errors}} ->
-        {:error, {:dgraph_error, errors}}
+          errors when is_list(errors) ->
+            {:error, {:dgraph_error, errors}}
+        end
 
       _ ->
         {:error, :cannot_process_response}
     end
   end
 
-  defp process_response(_), do: {:error, :invalid_response}
+  def process_response(_), do: {:error, :invalid_response}
+
+  @spec from_response(response :: %{optional(bitstring) => any}) :: Base.response()
+  defp from_response(response) when is_map(response) do
+    data = Map.get(response, "data", %{})
+
+    %Response{
+      data: data,
+      code: Map.get(data, "code", ""),
+      message: Map.get(data, "message", ""),
+      uids: Map.get(data, "uids", %{}),
+      extensions: Map.get(response, "extensions", %{}),
+      errors: Map.get(response, "errors", [])
+    }
+  end
 
   @spec list_to_map(klist :: list) :: map
   defp list_to_map(klist) when is_list(klist) do

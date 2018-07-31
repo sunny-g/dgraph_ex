@@ -45,7 +45,6 @@ defmodule DgraphEx.Client.Adapters.HTTP do
   @query_path Application.get_env(:dgraph_ex, :query_path, "/query")
   @abort_path Application.get_env(:dgraph_ex, :abort_path, "/abort")
   @commit_path Application.get_env(:dgraph_ex, :commit_path, "/commit")
-  @request Application.get_env(:dgraph_ex, :request, DefaultRequest)
 
   defguard are_query_vars(vars)
            when (is_map(vars) and map_size(vars) > 0) or is_list(vars)
@@ -254,6 +253,7 @@ defmodule DgraphEx.Client.Adapters.HTTP do
   @spec __do_request__(url :: bitstring, body :: bitstring, headers :: map) ::
           {:ok, ClientBase.response()} | {:error, ClientBase.error()}
   def __do_request__(url, body, headers \\ %{}) do
-    @request.exec(url, body, headers)
+    requester = Application.get_env(:dgraph_ex, :request, DefaultRequest)
+    requester.exec(url, body, headers)
   end
 end

@@ -1,4 +1,3 @@
-ExUnit.configure(exclude: [:integration])
 ExUnit.start()
 
 Code.load_file("./test/model_company.exs")
@@ -22,6 +21,8 @@ defmodule TestHelpers.RequestMock do
   alias DgraphEx.Client.Adapters.HTTP.RequestMock
 
   def assert_exec_params({expected_path, expected_body, expected_headers}) do
+    Application.put_env(:dgraph_ex, :request, RequestMock)
+
     expect(RequestMock, :exec, fn path, body, headers ->
       assert path == expected_path
       assert body == expected_body
