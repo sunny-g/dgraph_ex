@@ -54,6 +54,7 @@ defmodule DgraphEx.Client do
   @spec mutate(tx_pid :: pid(), mutation :: Base.mutate_input(), Base.mutate_opts()) ::
           {:ok, Base.response()} | {:error, Base.error()}
   def mutate(tx_pid, mutation, opts \\ [commit_now: false])
+
   def mutate(tx_pid, mutation, commit_now: commit_now) do
     txid = TxService.get_txid(tx_pid)
     lin_read = TxService.get_lin_read(tx_pid)
@@ -65,7 +66,12 @@ defmodule DgraphEx.Client do
       {:ok, res}
     else
       reason = {:dgraph_error, errors} ->
-        IO.warn("failed to mutate, aborting transaction #{txid} with errors #{Enum.map(errors, &Poison.encode!/1)}")
+        IO.warn(
+          "failed to mutate, aborting transaction #{txid} with errors #{
+            Enum.map(errors, &Poison.encode!/1)
+          }"
+        )
+
         abort(tx_pid)
         {:error, reason}
 
