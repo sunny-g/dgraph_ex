@@ -14,6 +14,7 @@ defmodule DgraphEx.Client.Base do
     Alter,
     Delete,
     Field,
+    Mutate,
     Query,
     Set
   }
@@ -42,6 +43,7 @@ defmodule DgraphEx.Client.Base do
           bitstring
           | %Set{}
           | %Delete{}
+          | %Mutate{}
   @type mutate_opts :: [txid: Transaction.id(), commit_now: boolean, lin_read: LinRead.t()]
   @type query_input ::
           [...]

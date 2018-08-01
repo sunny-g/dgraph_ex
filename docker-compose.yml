@@ -4,25 +4,18 @@ services:
     image: dgraph/dgraph:latest
     command: dgraph zero --my=zero:5080
     restart: on-failure
-    volumes:
-      - data:/dgraph
     ports:
-      - "5080:5080"
-      - "6080:6080"
-  server:
+      - 5080:5080
+      - 6080:6080
+  dgraph:
     image: dgraph/dgraph:latest
     command: dgraph server --my=server:8080 --zero=zero:5080 --lru_mb=2048
     restart: on-failure
-    volumes:
-      - data:/dgraph
     ports:
-      - "8080:8080"
-      - "9080:9080"
+      - 8080:8080
+      - 9080:9080
   ratel:
     image: dgraph/dgraph:latest
     command: dgraph-ratel
     ports:
-      - "8000:8000"
-
-volumes:
-  data:
+      - 8000:8000

@@ -3,7 +3,6 @@ defmodule DgraphEx.Client.Adapters.HTTP do
   The HTTP Client for Dgraph (just makes the raw requests over REST)
 
   Configuration options (under key `:dgraph_ex`):
-    - `:endpoint`: URL of the Dgraph database
     - `:abort_path`, `:alter_path`, `:commit_path`, `:mutate_path` and `:query_path`: URL suffixes appended to the endpoint for each operation
     - `:headers`: custom headers to be merged in with each request
     - `:exec`: custom HTTP post function, used mainly for testing (defaults to `HTTPoison.post/4`)
@@ -17,6 +16,7 @@ defmodule DgraphEx.Client.Adapters.HTTP do
     Delete,
     Field,
     Kwargs,
+    Mutate,
     Query,
     Set,
     Vertex
@@ -97,6 +97,11 @@ defmodule DgraphEx.Client.Adapters.HTTP do
 
   def mutate(%Delete{} = mutation, opts) do
     mutation_str = Delete.render(mutation)
+    mutate(mutation_str, opts)
+  end
+
+  def mutate(%Mutate{} = mutation, opts) do
+    mutation_str = Mutate.render(mutation)
     mutate(mutation_str, opts)
   end
 

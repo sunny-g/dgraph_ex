@@ -12,6 +12,8 @@ defmodule DgraphEx.Integration.Account do
     field(:when, :int)
   end
 
+  def changeset(changes), do: changeset(%__MODULE__{}, changes)
+
   def changeset(account = %__MODULE__{}, changes) when is_map(changes) do
     account
     |> Changeset.cast(changes, @allowed_fields)
@@ -19,21 +21,43 @@ defmodule DgraphEx.Integration.Account do
     |> Changeset.uncast()
   end
 
-  def new_mutation(account = %__MODULE__{}) do
-    account
-    |> Mutate.new()
-    |> Mutate.render()
+  def find_all(names) do
+    """
+      {
+        all(func: anyofterms(first, "#{Enum.join(names, " ")}")) {
+          first
+          last
+          age
+        }
+      }
+    """
   end
 
-  def update_mutation(uid, %{} = changes) do
-    {:ok, account} =
+  def find_one(%{first: first, last: last, age: age}) do
+    """
+      {
+        find(func: eq(first, "#{first}")) @filter(eq(last, "#{last}") AND eq(age, "#{age}")) {
+          uid: _uid_
+        }
+      }
+    """
+  end
+
+  def mutate_new(account = %__MODULE__{}), do: Mutate.new(account)
+
+  def mutate_update(uid, %{} = changes) do
+    changeset =
       %__MODULE__{}
       |> Changeset.cast(changes, @allowed_fields)
       |> Changeset.uncast()
 
-    account
-    |> Mutate.update(uid)
-    |> Mutate.render()
+    case changeset do
+      {:error, reason} ->
+        {:error, reason}
+
+      {:ok, account} ->
+        {:ok, Mutate.update(account, uid)}
+    end
   end
 end
 
@@ -77,15 +101,7 @@ defmodule DgraphEx.Integration.AccountUpsertTest do
   end
 
   test "" do
-    query = """
-      {
-        all(func: anyofterms(first, "#{Enum.join(@firsts, " ")}")) {
-          first
-          last
-          age
-        }
-      }
-    """
+    query = Account.find_all(@firsts)
 
     try_upsert(List.first(@accounts))
   end
@@ -93,14 +109,12 @@ defmodule DgraphEx.Integration.AccountUpsertTest do
   defp drop_all(), do: Client.alter(:drop_all)
   defp set_schema(), do: Client.alter(@schema)
 
-  defp try_upsert(account = %{first: first, last: last, age: age}) do
-    query = """
-      {
-        find(func: eq(first, "#{first}")) @filter(eq(last, "#{last}") AND eq(age, "#{age}")) {
-          uid: _uid_
-        }
-      }
-    """
+  defp upsert(account) do
+
+  end
+
+  defp try_upsert(account) do
+    query = Account.find_one(account)
 
     {:ok, tx_pid} = Client.new_transaction()
 
@@ -113,7 +127,7 @@ defmodule DgraphEx.Integration.AccountUpsertTest do
           |> Enum.at(0)
           |> Map.get("uid")
         else
-          mutation = Account.new_mutation(account)
+          mutation = Account.mutate_new(account)
 
           {:ok, res} = Client.mutate(tx_pid, mutation)
           %Response{uids: %{"account" => uid}} = res
@@ -122,7 +136,7 @@ defmodule DgraphEx.Integration.AccountUpsertTest do
           uid
         end
 
-      mutation = Account.update_mutation(uid, %{
+      mutation <- Account.mutate_update(uid, %{
         when: DateTime.utc_now() |> DateTime.to_unix(:milliseconds)
       })
 

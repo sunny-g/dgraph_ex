@@ -16,6 +16,8 @@ defmodule DgraphEx.Core.Mutate do
     new(fields)
   end
 
+  def update(fields) when is_list(fields), do: %__MODULE__{fields: fields}
+
   def update(model, uid) when is_bitstring(uid) do
     update(model, %Uid{value: uid, type: :literal})
   end
