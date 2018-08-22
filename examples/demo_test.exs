@@ -1,4 +1,6 @@
 defmodule Demo do
+  @moduledoc false
+
   use ExUnit.Case
 
   import DgraphEx
@@ -7,7 +9,6 @@ defmodule Demo do
   @commit_now true
 
   def new_resource() do
-
     result = set()
     |> field(:resource, :title, "Hello World", :string)
     |> field(:resource, :blob, :blob1, :uid)
@@ -15,13 +16,10 @@ defmodule Demo do
 
     render(result) |> IO.puts
 
-    result = result
-    |> Repo.mutate(@commit_now)
-
+    Repo.mutate(result, @commit_now)
   end
 
   def alter_predicates() do
-
     result = alter()
     |> field(:title, :string, index: [:term])
     |> field(:html, :string, [])
@@ -29,13 +27,10 @@ defmodule Demo do
 
     render(result) |> IO.puts
 
-    result = result
-    |> Repo.alter()
-
+    Repo.alter(result)
   end
 
   def cleanup() do
-
     result = delete()
     |> field("*", :blob, "*")
     |> field("*", :title, "*")
@@ -43,13 +38,10 @@ defmodule Demo do
 
     render(result) |> IO.puts
 
-    result = result
-    |> Repo.mutate(@commit_now)
-
+    Repo.mutate(result, @commit_now)
   end
 
   def get_resource(id) do
-
     result = query()
     |> func(:get, uid(id))
     |> select({
@@ -60,13 +52,10 @@ defmodule Demo do
 
     render(result) |> IO.puts
 
-    result = result
-    |> Repo.query
-
+    Repo.query(result)
   end
 
   def all_resources() do
-
     result = query()
     |> func(:all, eq(:title, "Hello World"))
     |> select({
@@ -77,8 +66,7 @@ defmodule Demo do
 
     render(result) |> IO.puts
 
-    result = result
-    |> Repo.query
+    Repo.query(result)
   end
 
 
@@ -89,9 +77,7 @@ defmodule Demo do
 
     render(result) |> IO.puts
 
-    result = result
-    |> Repo.mutate(@commit_now)
-
+    Repo.mutate(result, @commit_now)
   end
 
   def delete_all([%{"uid" => id}|resources]) do
@@ -103,7 +89,6 @@ defmodule Demo do
   def delete_all([]), do: nil
 
   test "quick test to demonstrate persistance with set, alter, query, delete" do
-
     {:ok, %{uids: %{"resource" => resource_id}}} = new_resource()
 
     alter_predicates()
@@ -123,7 +108,5 @@ defmodule Demo do
     assert resources == []
 
     cleanup()
-
   end
-
 end

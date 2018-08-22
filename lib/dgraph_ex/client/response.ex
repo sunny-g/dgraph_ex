@@ -1,103 +1,67 @@
-defmodule DgraphEx.Response do
-  alias DgraphEx.{Response, Request}
+defmodule DgraphEx.Client.Response do
+  @moduledoc """
+  Dgraph API Response struct
+  """
 
-  defstruct [
-    status:     nil,
-    data:       nil,
-    errors:     [],
-    code:       nil,
-    message:    nil,
-    uids:       %{},
-    request:    nil,
-    json:       nil,
-    extensions: nil,
-  ]
+  alias DgraphEx.Client.Transaction
+  require OK
 
-  def from_http_response({:ok, resp}, request) do
-    from_http_response(resp, request)
-  end
-  def from_http_response({:error, %{reason: status}}, request) do
-    new_error(:invalid_response, status, request)
-  end
-  def from_http_response(%HTTPoison.Response{} = http_resp, request) do
-    case Poison.decode(http_resp.body) do
-      {:ok, json} when is_map(json) ->
-        new(http_resp.status_code, json, request)
-        |> validate
-      {:error, reason} ->
-        new_error(:invalid_json, reason)
-    end
-  end
-  def from_http_response(%HTTPoison.Error{reason: status}, request) do
-    new_error(:http_error, status, request)
-  end
+  defstruct data: %{},
+            code: "",
+            message: "",
+            uids: %{},
+            extensions: %{},
+            errors: []
 
-  defp get_json(json, field, default \\ nil) do
-    cond do
-      Map.has_key?(json, field) ->
-        json
-        |> Map.get(field)
-      Map.has_key?(json, "data") ->
-        json
-        |> Map.get("data")
-        |> Kernel.||(%{})
-        |> get_json(field, default)
-      true ->
-        default
+  @type message :: %{
+          code: bitstring,
+          message: bitstring
+        }
+  @type error ::
+          atom
+          | bitstring
+          | message
+          | {:dgraph_error, [message]}
+          | {:network_error, any}
+  @type t :: %__MODULE__{
+          data: map,
+          code: bitstring,
+          message: bitstring,
+          uids: map,
+          extensions: map,
+          errors: [error]
+        }
+
+  @spec get_lin_read(res :: t()) :: {:ok, LinRead.t()} | {:error, :not_found}
+  def get_lin_read(%__MODULE__{} = response) do
+    OK.with do
+      %Transaction{lin_read: lin_read} <- get_tx(response)
+      {:ok, lin_read}
     end
   end
 
-  def new(status, json, %Request{} = request) when is_map(json) do
-    # IO.inspect(json, label: :response_json)
-    %Response{
-      status:       status,
-      json:         json,
-      code:         get_json(json, "code"),
-      message:      get_json(json, "message"),
-      uids:         get_json(json, "uids"),
-      # data:         json |> Map.get("data") |> Map.drop(["code", "message", "uids"]),
-      data:         json |> Map.get("data", []),
-      extensions:   Map.get(json, "extensions", %{}),
-      errors:       json |> Map.get("errors", []) |> Enum.map(&DgraphEx.Error.new/1),
-      request:      request,
-    }
+  @spec get_tx(res :: t()) :: {:ok, Transaction.t()} | {:error, :not_found}
+  def get_tx(%__MODULE__{} = response) do
+    OK.with do
+      txn <- get_in_obj(response.extensions, ["txn"])
+      lin_read <- get_in_obj(txn, ["lin_read", "ids"])
+
+      tx = %Transaction{
+        start_ts: Map.get(txn, "start_ts"),
+        keys: Map.get(txn, "keys", []),
+        lin_read: lin_read
+      }
+
+      {:ok, tx}
+    end
   end
 
-  def validate(%Response{errors: errors} = resp) when length(errors) > 0 do
-    {:error, resp}
+  @spec get_in_obj(obj :: map, keys :: list(atom | bitstring)) ::
+          {:ok, any} | {:error, :not_found}
+  defp get_in_obj(obj, keys) when is_map(obj) and is_list(keys) do
+    case get_in(obj, keys) do
+      nil -> {:error, :not_found}
+      val -> {:ok, val}
+    end
   end
-  def validate(%Response{status: 200} = resp) do
-    {:ok, resp}
-  end
-  def validate(%Response{} = resp) do
-    new_error(:invalid_response, resp)
-  end
-
-  defp new_error(reason, %Response{} = resp) when is_atom(reason) do
-    {:error, reason, resp}
-  end
-  defp new_error(reason, status, request) do
-    new_error(reason, new(status, %{}, request))
-  end
-end
-
-defimpl Inspect, for: DgraphEx.Response do
-  def inspect(resp, opts) do
-    {name, item} = important_item(resp)
-    "#DgraphEx.Response<status: #{inspect resp.status}, #{name}: #{inspect item}>"
-  end
-
-  defp important_item(%{errors: errors}) when length(errors) > 0 do
-    {:errors, errors}
-  end
-  defp important_item(%{uids: uids}) when map_size(uids) > 0 do
-    {:uids, uids}
-  end
-  defp important_item(%{data: data}) when not is_nil(data) do
-    {:data, data}
-  end
-  defp important_item(%{message: msg}) when is_binary(msg) do
-    {:message, msg}
-  end
-
 end

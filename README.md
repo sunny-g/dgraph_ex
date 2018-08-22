@@ -211,3 +211,15 @@ Both of the above requests for "spy" result in the same response:
 }}
 
 ```
+
+#### Testing
+
+```
+# unit tests
+mix test.unit
+
+# integration tests
+docker-compose up -d
+mix test.integration
+docker-compose stop
+```
