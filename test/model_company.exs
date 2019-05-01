@@ -1,20 +1,21 @@
 defmodule DgraphEx.ModelCompany do
-  use DgraphEx.Vertex
+  @moduledoc false
+
+  use DgraphEx.Core.Vertex
   alias DgraphEx.ModelCompany, as: Company
   alias DgraphEx.ModelPerson, as: Person
-  alias DgraphEx.Changeset
-  
+  alias DgraphEx.Core.Changeset
 
   vertex :company do
-    field :name,      :string, index: [:exact, :terms]
-    field :owner,     :uid, model: Person, reverse: true
-    field :location,  :geo, index: true
+    field(:name, :string, index: [:exact, :terms])
+    field(:owner, :uid, model: Person, reverse: true)
+    field(:location, :geo, index: true)
   end
 
   @allowed_fields [
     :name,
     :owner,
-    :location,
+    :location
   ]
 
   def changeset(%Company{} = model, %{} = changes) do
@@ -23,5 +24,4 @@ defmodule DgraphEx.ModelCompany do
     |> Changeset.validate_required([:name])
     |> Changeset.validate_type([:name])
   end
-
 end

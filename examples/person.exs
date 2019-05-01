@@ -1,8 +1,9 @@
 defmodule DgraphEx.Examples.Person do
-  use DgraphEx.Vertex
+  @moduledoc false
 
+  use DgraphEx.Core.Vertex
+  alias DgraphEx.Core.Changeset
   alias DgraphEx.Examples.Person
-  alias DgraphEx.Changeset
 
   vertex :person do
     field :name,    :string, index: [:exact, :term]
@@ -18,8 +19,7 @@ defmodule DgraphEx.Examples.Person do
   end
 
   def jason_g do
-
-    person = 
+    person =
       %Person{
         name: "Jason Goldberger",
         address: "123 Maple Rd Phoenix, AZ 85255"
@@ -33,10 +33,8 @@ defmodule DgraphEx.Examples.Person do
       |> DgraphEx.render
 
     IO.puts("rendered: #{rendered}")
-    result =
-      rendered
-      |> DgraphEx.Client.send
-    
+    result = DgraphEx.Client.send(body: rendered)
+
     IO.puts("result: #{inspect result}")
     result
   end
@@ -50,12 +48,12 @@ defmodule DgraphEx.Examples.Person do
       |> DgraphEx.field(:person, :address, "123 Oak St. Scottsdale, AZ 85251", :string)
       |> DgraphEx.assemble
       |> DgraphEx.render
-    
+
     IO.puts("rendered: #{rendered}")
     result =
       rendered
       |> DgraphEx.Client.send
-    
+
     IO.puts("result: #{inspect result}")
     result
   end
